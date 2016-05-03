@@ -1,15 +1,14 @@
 #include "AST.h"
 #include <iostream>
 #include <utility>
-
+#include "Types.h"
 using std::cout;
 using std::string;
 using std::unique_ptr;
 using std::endl;
 using std::move;
-namespace AST {
+using namespace AST;
 
-bool compatible(Type t1, Type t2);
 
 void BlockNode::addNode(unique_ptr<AbstractNode> node) 
 {
@@ -43,6 +42,15 @@ ExpressionNode::ExpressionNode(Type type_) : type(type_)
 {
 }
 
+ExpressionNode::ExpressionNode(): type(TERROR)
+{
+}
+
+void ExpressionNode::initialize(const Type t_)
+{
+    type = t_;
+}
+
 Type ExpressionNode::getType() const
 {
     return type;
@@ -68,21 +76,10 @@ BinaryNode::BinaryNode(unique_ptr<ExpressionNode> lhs_, unique_ptr<ExpressionNod
 {
     Type lt = lhs_->getType();
     Type rt = rhs_->getType();
-    if(lt == rt)
-    {
-        ExpressionNode(lt);
-    }
-    else
-    {
-        if(compatible(lt, rt))
-        {
-            //TODO
-        }
-        else
-        {
-            throw(IncompatibleTypeException(lt, rt));
-        }
-    }
+    auto ptrLT = ExprType::makeType(lt);
+    auto ptrRT = ExprType::makeType(rt);
+    auto newType = ptrLT->getNewType(ptrRT.get());
+    initialize(newType->getTypeCode());
 }
 
 PlusBinaryNode::PlusBinaryNode(unique_ptr<ExpressionNode> lhs, unique_ptr<ExpressionNode> rhs) : BinaryNode(move(lhs), move(rhs))
@@ -114,11 +111,4 @@ UnaryNode::UnaryNode(unique_ptr<ExpressionNode> node_) : node(move(node_))
 }
 
 
-bool compatible(Type t1, Type t2)
-{
-    //TODO
-    return true;
-}
-
     
-}

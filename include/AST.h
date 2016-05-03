@@ -3,20 +3,8 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <exception>
+#include "Types.h"
 namespace AST {
-
-
-enum Type
-{
-    TINT, TREAL, TBOOL
-};
-
-class IncompatibleTypeException : public Exception
-{
-public:
-    IncompatibleTypeException(Type tl, Type tr);
-};
 
 class AbstractNode 
 {
@@ -43,8 +31,10 @@ class ExpressionNode : public AbstractNode
 public:
     virtual void printNode() = 0;
     ExpressionNode(Type type);
+    ExpressionNode();
     Type getType() const;
 protected:
+    void initialize(const Type type);
     Type type;
 };
 
