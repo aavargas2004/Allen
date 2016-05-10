@@ -2,6 +2,9 @@
     #include <stdio.h>
     #define YY_DECL int yylex()
     #include "parse.tab.h"
+    #include <string>
+    #include <iostream>
+    void printerr(std::string err);
 %  }
 
 digito [0-9] //Expressão regular que dá match em qualquer número de 0 a 9.
@@ -86,10 +89,12 @@ digito+"."digito* | digito*"."digito+
 }
 TRUE
 {
+    yylval.bool_val = true;
     return T_TRUE;
 }
 FALSE
 {
+    yylval.bool_val = false;
     return T_FALSE;
 }
 "="
@@ -120,4 +125,13 @@ OR
 {
     return T_NOT;
 }
+.
+{
+    printerr(std::string(strdup(yytext)));
+}
 %%
+
+void printerr(std::string err) 
+{
+    std::cerr << "Erro lexico: simbolo desconhecido:" << err << "." << std::endl;
+}

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <utility>
 #include "Types.h"
+#include "Exceptions.h"
 using std::cout;
 using std::string;
 using std::unique_ptr;

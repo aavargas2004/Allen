@@ -6,6 +6,8 @@
 #include "Types.h"
 namespace AST {
 
+enum Type;
+
 class AbstractNode 
 {
 public:
@@ -95,6 +97,9 @@ public:
 protected:
     virtual void printOperation() const;
 };
+
+
+
 
 
 class UnaryNode : public ExpressionNode

@@ -5,6 +5,8 @@
 using std::map;
 using namespace AST;
 
+std::map<Type, std::map<Type, Type>> ExprType::typeMap = std::map<Type, std::map<Type, Type>>();
+
 type_ptr ExprType::makeType(Type typeCode) 
 {
     type_ptr ret;    
@@ -32,6 +34,7 @@ type_ptr ExprType::makeType(Type typeCode)
     }
     return ret;
 }
+
 
 const map<Type, map<Type, Type>>& ExprType::getTypeMap()
 {
@@ -69,8 +72,9 @@ type_ptr ExprType::getNewType(const ExprType* other) const
     {
         throw IncompatibleTypeException(getTypeCode(), other->getTypeCode());
     }
-    
-    return ExprType::makeType(ExprType::getTypeMap([getTypeCode()][other->getTypeCode()]));
+    auto mapVal = ExprType::getTypeMap();
+    Type tp = mapVal[this->getTypeCode()][other->getTypeCode()];
+    return ExprType::makeType(tp);
 }
 
 Type TypeDouble::getTypeCode() const
