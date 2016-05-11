@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include "Types.h"
+using std::shared_ptr;
 namespace AST {
 
 enum Type;
@@ -12,9 +13,10 @@ class AbstractNode
 {
 public:
     virtual void printNode() const = 0;
+    virtual ~AbstractNode();
 };
 
-using nodeList = std::vector<std::unique_ptr<AbstractNode>>;
+using nodeList = std::vector<std::shared_ptr<AbstractNode>>;
 
 
 class BlockNode : public AbstractNode
@@ -23,7 +25,7 @@ public:
     BlockNode(const BlockNode& rhs) = delete;
     BlockNode& operator=(const BlockNode& rhs) = delete;
     virtual void printNode() const;
-    void addNode(std::unique_ptr<AbstractNode> node);
+    void addNode(std::shared_ptr<AbstractNode> node);
 private:
     nodeList nodes;
 };
@@ -68,20 +70,20 @@ class BinaryNode : public ExpressionNode
 {
 public:
     virtual void printNode() const;
-    BinaryNode(std::unique_ptr<ExpressionNode> lhs, std::unique_ptr<ExpressionNode> rhs);
+    BinaryNode(std::shared_ptr<ExpressionNode> lhs, std::shared_ptr<ExpressionNode> rhs);
     BinaryNode(const BinaryNode& rhs) = delete;
     BinaryNode& operator=(const BinaryNode& rhs) = delete;
 protected:
     virtual void printOperation() const = 0;    
 private:
-    std::unique_ptr<AbstractNode> lhs;
-    std::unique_ptr<AbstractNode> rhs; 
+    std::shared_ptr<AbstractNode> lhs;
+    std::shared_ptr<AbstractNode> rhs;
 };
 
 class PlusBinaryNode : public BinaryNode 
 {
 public:
-    PlusBinaryNode(std::unique_ptr<ExpressionNode> lhs, std::unique_ptr<ExpressionNode> rhs);
+    PlusBinaryNode(std::shared_ptr<ExpressionNode> lhs, std::shared_ptr<ExpressionNode> rhs);
     PlusBinaryNode(const PlusBinaryNode& rhs) = delete;
     PlusBinaryNode& operator=(const PlusBinaryNode& rhs) = delete;
 protected:
@@ -91,7 +93,7 @@ protected:
 class MinusBinaryNode : public BinaryNode
 {
 public:
-    MinusBinaryNode(std::unique_ptr<ExpressionNode> lhs, std::unique_ptr<ExpressionNode> rhs);
+    MinusBinaryNode(std::shared_ptr<ExpressionNode> lhs, std::shared_ptr<ExpressionNode> rhs);
     MinusBinaryNode(const MinusBinaryNode& rhs) = delete;
     MinusBinaryNode& operator=(const MinusBinaryNode& rhs) = delete;
 protected:
@@ -99,20 +101,57 @@ protected:
 };
 
 
+class MultiplicationBinaryNode : public BinaryNode
+{
+public:
+	MultiplicationBinaryNode(std::shared_ptr<ExpressionNode> lhs, std::shared_ptr<ExpressionNode> rhs);
+	MultiplicationBinaryNode(const MultiplicationBinaryNode& rhs) = delete;
+	MultiplicationBinaryNode& operator=(const MultiplicationBinaryNode& rhs) = delete;
+protected:
+	virtual void printOperation() const;
+};
 
+
+class DivisionBinaryNode : public BinaryNode
+{
+public:
+	DivisionBinaryNode(std::shared_ptr<ExpressionNode> lhs, std::shared_ptr<ExpressionNode> rhs);
+	DivisionBinaryNode(const DivisionBinaryNode& rhs) = delete;
+	DivisionBinaryNode& operator=(const DivisionBinaryNode& rhs) = delete;
+protected:
+	virtual void printOperation() const;
+};
+
+class AndBinaryNode : public BinaryNode
+{
+public:
+	AndBinaryNode(std::shared_ptr<ExpressionNode> lhs, std::shared_ptr<ExpressionNode> rhs);
+	AndBinaryNode(const AndBinaryNode& rhs) = delete;
+	AndBinaryNode& operator=(const AndBinaryNode& rhs) = delete;
+protected:
+	virtual void printOperation() const;
+};
+
+class OrBinaryNode : public ExpressionNode
+{
+public:
+	OrBinaryNode(std::shared_ptr<ExpressionNode> lhs, std::shared_ptr<ExpressionNode> rhs);
+	OrBinaryNode(const OrBinaryNode& rhs) = delete;
+	OrBinaryNode& operator=(const OrBinaryNode& rhs) = delete;
+};
 
 
 class UnaryNode : public ExpressionNode
 {
 public:
     virtual void printNode() const;
-    UnaryNode(std::unique_ptr<ExpressionNode> node);
+    UnaryNode(std::shared_ptr<ExpressionNode> node);
     UnaryNode(const UnaryNode& rhs) = delete;
     UnaryNode& operator=(const UnaryNode& rhs) = delete;
 protected:
     virtual void printOperation() const = 0;
 private:
-    std::unique_ptr<AbstractNode> node;
+    std::shared_ptr<AbstractNode> node;
 };
 
 }

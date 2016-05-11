@@ -1,7 +1,7 @@
 % {
     #include <stdio.h>
     #define YY_DECL int yylex()
-    #include "parse.tab.h"
+    #include "parser.tab.h"
     #include <string>
     #include <iostream>
     void printerr(std::string err);

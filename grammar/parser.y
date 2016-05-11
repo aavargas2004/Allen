@@ -67,4 +67,17 @@ tipo T_DECLVAR varlist
 }
 ;
 
+varlist:
+varlist T_COM T_VARNAME
+{
+	$0.push_back($3);
+}
+|
+T_VARNAME
+{
+	$0 = std::vector<std::string>();
+	$0.push_back($1);
+}
+;
+
 %%
