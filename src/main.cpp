@@ -9,8 +9,8 @@ using std::endl;
 
 
 int main() {
-    auto type_ptrI = ExprType::makeType(Type::TINT);
-    auto type_ptrD = ExprType::makeType(Type::TBOOL);
+    auto type_ptrI = ExprType::makeType(Type::TERROR);
+    auto type_ptrD = ExprType::makeType(Type::TERROR);
     auto newType = type_ptrI->getNewType(type_ptrD.get());
     switch(newType->getTypeCode())
     {

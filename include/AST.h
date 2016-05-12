@@ -132,12 +132,14 @@ protected:
 	virtual void printOperation() const;
 };
 
-class OrBinaryNode : public ExpressionNode
+class OrBinaryNode : public BinaryNode
 {
 public:
 	OrBinaryNode(std::shared_ptr<ExpressionNode> lhs, std::shared_ptr<ExpressionNode> rhs);
 	OrBinaryNode(const OrBinaryNode& rhs) = delete;
 	OrBinaryNode& operator=(const OrBinaryNode& rhs) = delete;
+protected:
+	virtual void printOperation() const;
 };
 
 
