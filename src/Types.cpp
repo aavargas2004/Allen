@@ -2,10 +2,28 @@
 #include <memory>
 #include "Exceptions.h"
 #include <map>
+#include <string>
 using std::map;
+using std::string;
 using namespace AST;
 
 std::map<Type, std::map<Type, Type>> ExprType::typeMap = std::map<Type, std::map<Type, Type>>();
+
+ExprType::~ExprType() {
+
+}
+
+string TypeInteger::getTypeName() const {
+	return string("Integer");
+}
+
+string TypeDouble::getTypeName() const {
+	return string("Real");
+}
+
+string TypeBool::getTypeName() const {
+	return string("Bool");
+}
 
 type_ptr ExprType::makeType(Type typeCode) 
 {

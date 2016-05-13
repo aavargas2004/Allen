@@ -5,14 +5,13 @@
 #include "Exceptions.h"
 using std::cout;
 using std::string;
-using std::shared_ptr;
 using std::endl;
 using namespace AST;
 
 AbstractNode::~AbstractNode() {
 }
 
-void BlockNode::addNode(shared_ptr<AbstractNode> node) {
+void BlockNode::addNode(AbstractNode* node) {
 	nodes.push_back(node);
 }
 
@@ -64,8 +63,8 @@ void BinaryNode::printNode() const {
 	rhs->printNode();
 }
 
-BinaryNode::BinaryNode(shared_ptr<ExpressionNode> lhs_,
-		shared_ptr<ExpressionNode> rhs_) :
+BinaryNode::BinaryNode(ExpressionNode* lhs_,
+		ExpressionNode* rhs_) :
 		lhs(lhs_), rhs(rhs_) {
 	Type lt = lhs_->getType();
 	Type rt = rhs_->getType();
@@ -75,8 +74,8 @@ BinaryNode::BinaryNode(shared_ptr<ExpressionNode> lhs_,
 	initialize(newType->getTypeCode());
 }
 
-PlusBinaryNode::PlusBinaryNode(shared_ptr<ExpressionNode> lhs,
-		shared_ptr<ExpressionNode> rhs) :
+PlusBinaryNode::PlusBinaryNode(ExpressionNode* lhs,
+		ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 }
 
@@ -84,8 +83,8 @@ void PlusBinaryNode::printOperation() const {
 	cout << "+";
 }
 
-MinusBinaryNode::MinusBinaryNode(shared_ptr<ExpressionNode> lhs,
-		shared_ptr<ExpressionNode> rhs) :
+MinusBinaryNode::MinusBinaryNode(ExpressionNode* lhs,
+		ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 }
 
@@ -94,15 +93,15 @@ void MinusBinaryNode::printOperation() const {
 }
 
 MultiplicationBinaryNode::MultiplicationBinaryNode(
-		shared_ptr<ExpressionNode> lhs, shared_ptr<ExpressionNode> rhs) :
+		ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 }
 void MultiplicationBinaryNode::printOperation() const {
 	cout << "*";
 }
 
-DivisionBinaryNode::DivisionBinaryNode(std::shared_ptr<ExpressionNode> lhs,
-		std::shared_ptr<ExpressionNode> rhs) :
+DivisionBinaryNode::DivisionBinaryNode(ExpressionNode* lhs,
+		ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 
 }
@@ -111,21 +110,19 @@ void DivisionBinaryNode::printOperation() const {
 	cout << "/";
 }
 
-AndBinaryNode::AndBinaryNode(std::shared_ptr<ExpressionNode> lhs,
-		std::shared_ptr<ExpressionNode> rhs) :
+AndBinaryNode::AndBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 }
 void AndBinaryNode::printOperation() const {
-	cout << "AND";
+	cout << " AND ";
 }
 
-OrBinaryNode::OrBinaryNode(std::shared_ptr<ExpressionNode> lhs,
-		std::shared_ptr<ExpressionNode> rhs) :
+OrBinaryNode::OrBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 }
 
 void OrBinaryNode::printOperation() const {
-	cout << "OR";
+	cout << " OR ";
 }
 
 void UnaryNode::printNode() const {
@@ -133,7 +130,7 @@ void UnaryNode::printNode() const {
 	node->printNode();
 }
 
-UnaryNode::UnaryNode(shared_ptr<ExpressionNode> node_) :
+UnaryNode::UnaryNode(ExpressionNode* node_) :
 		node(node_) {
 }
 

@@ -4,15 +4,19 @@
 #include <vector>
 extern int yylex();
 extern int yyparse();
+extern void yyerror(const char* s, ...);
+AST::BlockNode* root;
 %}
+
+
 
 %union {
     AST::AbstractNode* abstractNode;
     AST::BlockNode* nodeBlock;
     AST::Type type;
-    std::string var_name;
-    std::vector<std::string> varNameList;
-    std::vector<AST::VariableNode*>> varList;
+    const char* var_name;
+    std::vector<std::string>* varNameList;
+    std::vector<AST::VariableNode*>* varList;
     int val_int;
     double val_float;
     bool bool_val;
@@ -25,58 +29,88 @@ extern int yyparse();
 %type<varList> declarevar
 %type<nodeBlock> head statements
 %type<abstractNode> statement
+%type<var_name> T_VARNAME
 %%
 
 head: 
 statements
+{
+    root = $1;
+}
 ;
 
 statements: 
 statements statement
 {
+    $$ = $1;
+    $$->addNode($2);
 }
 |
 statement
 {
-    
+    $$ = new AST::BlockNode();
+    $$->addNode($1);    
 } 
 ;
 
 statement:
 declarevar
 {
-    AbstractNode* node = new BlockNode();
-    for(auto var : $1)
-    {
-        //Não aceita ponteiro puro. Mudar para shared_ptr nesse arquivo e dentro do AST, pois os ponteiros devem ser compartilhados 
+    AST::BlockNode* node = new AST::BlockNode();
+    for(auto var : *($1))
+    { 
         node->addNode(var);
     }
+    $$ = node;    
 }
 ;
 
 declarevar: 
-tipo T_DECLVAR varlist
+tipo T_DECLVAR varlist T_SMC
 {
     AST::Type type = $1;
-    std::vector<AST::VariableNode*> varVec;
-    for(auto& name : $3)
+    std::vector<AST::VariableNode*>* varVec = new std::vector<AST::VariableNode*>();
+    auto typeobjptr = AST::ExprType::makeType(type);
+    std::cout << "Declaração de variável " << typeobjptr->getTypeName() << " ";
+    std::string prefix = "";
+    for(auto& name : *($3))
     {
-        varVec.push_back(new AST::VariableNode(name, type));
+    	std::cout << prefix << name;
+        varVec->push_back(new AST::VariableNode(name, type));
+        prefix = ", ";
     }
-    $0 = varVec;
+    std::cout << std::endl;
+    $$ = varVec;
+}
+;
+
+tipo:
+T_TINT
+{
+    $$ = AST::Type::TINT;
+}
+|
+T_TREAL
+{
+    $$ = AST::Type::TREAL;
+}
+|
+T_TBOOL
+{
+    $$ = AST::Type::TBOOL;
 }
 ;
 
 varlist:
 varlist T_COM T_VARNAME
 {
-	$0.push_back($3);
+	$$->push_back(std::string($3));
 }
 |
 T_VARNAME
 {
-	$0 = std::vector<std::string>();
-	$0.push_back($1);
+	$$ = new std::vector<std::string>();
+	$$->push_back(std::string($1));
 }
 ;
 
