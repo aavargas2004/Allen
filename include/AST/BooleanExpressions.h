@@ -96,7 +96,7 @@ protected:
 	virtual void printOperation() const;
 };
 
-class NotUnaryNode : public UnaryNode {
+class NotUnaryNode : public UnaryBooleanExpressionNode {
 public:
 	NotUnaryNode(ExpressionNode* node);
 protected:

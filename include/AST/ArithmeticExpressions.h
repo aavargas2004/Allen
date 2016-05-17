@@ -49,6 +49,16 @@ protected:
 	virtual void printOperation() const;
 };
 
+class UnaryNode: public ExpressionNode {
+public:
+	virtual void printNode() const;
+	UnaryNode(ExpressionNode* node);
+protected:
+	virtual void printOperation() const = 0;
+private:
+	AbstractNode* node;
+};
+
 }
 
 #endif /* ARITHMETICEXPRESSIONS_H_ */
