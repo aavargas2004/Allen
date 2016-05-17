@@ -22,7 +22,7 @@ typedef struct _variableInfo {
 class ScopeNode {
 public:
 	ScopeNode(ScopeNode* previous);
-	bool searchScope(const std::string& name, variableInfo& outputInfo);
+	bool searchScope(const std::string& name, variableInfo** outputInfo);
 	void addToScope(const std::string& name, const AST::Type& varType);
 	ScopeNode* previousNode();
 	ScopeNode(const ScopeNode& rhs) = delete;
@@ -41,10 +41,10 @@ public:
 	void addToScope(const std::string& name, const AST::Type& varType);
 	~Scope();
 	void generateScope();
-	variableInfo& searchScope(const std::string& varName);
+	variableInfo* searchScope(const std::string& varName);
 	bool deleteScope();
 private:
-	ScopeNode* head;
+	ScopeNode* globalScope;
 	ScopeNode* tail;
 };
 

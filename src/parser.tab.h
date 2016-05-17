@@ -80,11 +80,13 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 13 "parser.y" /* yacc.c:1909  */
+#line 16 "../grammar/parser.y" /* yacc.c:1909  */
 
     AST::AbstractNode* abstractNode;
     AST::BlockNode* nodeBlock;
     AST::Type type;
+    AST::ExpressionNode* exprNode;
+    AST::BoolNode* boolNode;
     const char* var_name;
     std::vector<std::string>* varNameList;
     std::vector<AST::VariableNode*>* varList;
@@ -92,7 +94,7 @@ union YYSTYPE
     double val_float;
     bool bool_val;
 
-#line 96 "parser.tab.h" /* yacc.c:1909  */
+#line 98 "parser.tab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

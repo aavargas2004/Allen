@@ -1,0 +1,5 @@
+../grammar/parser.y: In function ‘int yyparse()’:
+../grammar/parser.y:191:5: error: ‘else’ without a previous ‘if’
+     else if(!variableSymbol->defined){
+     ^
+make: *** [parser.tab.o] Error 1

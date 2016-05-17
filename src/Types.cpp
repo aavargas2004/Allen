@@ -71,6 +71,9 @@ const map<Type, map<Type, Type>>& ExprType::getTypeMap()
 
 bool ExprType::compatible(const ExprType * other) const
 {
+	if(getTypeCode() == other->getTypeCode()) {
+		return true;
+	}
     auto map = ExprType::getTypeMap();
     return map[getTypeCode()].find(other->getTypeCode()) != map[getTypeCode()].end();
 }

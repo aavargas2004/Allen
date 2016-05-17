@@ -517,11 +517,12 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "lex.l"
-#line 2 "lex.l"
+#line 1 "../grammar/lex.l"
+#line 2 "../grammar/lex.l"
     #include <stdio.h>
     #include <stdarg.h>
     #include <string>
+    #include "Scope.h"
     #include <iostream>
     #include "AST.h"
     #include <vector>
@@ -529,7 +530,7 @@ char *yytext;
     #include "parser.tab.h"
     extern int yylineno;
     void yyerror(const char* s, ...);
-#line 533 "lex.yy.c"
+#line 534 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -716,10 +717,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 18 "lex.l"
+#line 19 "../grammar/lex.l"
 
 
-#line 723 "lex.yy.c"
+#line 724 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -815,33 +816,33 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 20 "lex.l"
+#line 21 "../grammar/lex.l"
 ; //Ignora espaços em branco.
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 22 "lex.l"
+#line 23 "../grammar/lex.l"
 {
     return T_TINT;
 }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 25 "lex.l"
+#line 26 "../grammar/lex.l"
 {
     return T_TREAL;
 }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 28 "lex.l"
+#line 29 "../grammar/lex.l"
 {
     return T_TBOOL;
 }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 31 "lex.l"
+#line 32 "../grammar/lex.l"
 {
     yylval.var_name = strdup(yytext); 
     return T_VARNAME;
@@ -849,7 +850,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 35 "lex.l"
+#line 36 "../grammar/lex.l"
 {
     yylval.val_int = atoi(yytext); 
     return T_INT;
@@ -857,7 +858,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 39 "lex.l"
+#line 40 "../grammar/lex.l"
 {
     yylval.val_float = atof(yytext);
     return T_FLOAT;    
@@ -865,91 +866,91 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 43 "lex.l"
+#line 44 "../grammar/lex.l"
 {
     return T_ASSIGN;
 }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 46 "lex.l"
+#line 47 "../grammar/lex.l"
 {
     return T_DECLVAR;
 }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 49 "lex.l"
+#line 50 "../grammar/lex.l"
 {
     return T_MINUS;
 }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 52 "lex.l"
+#line 53 "../grammar/lex.l"
 {
     return T_PLUS;
 }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 55 "lex.l"
+#line 56 "../grammar/lex.l"
 {
     return T_TIMES;
 }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 58 "lex.l"
+#line 59 "../grammar/lex.l"
 {
     return T_GRT;
 }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 61 "lex.l"
+#line 62 "../grammar/lex.l"
 {
     return T_LSS;
 }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 64 "lex.l"
+#line 65 "../grammar/lex.l"
 {
     return T_SMC;
 }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 67 "lex.l"
+#line 68 "../grammar/lex.l"
 {
     return T_LPR;
 }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 70 "lex.l"
+#line 71 "../grammar/lex.l"
 {
     return T_RPR;
 }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 73 "lex.l"
+#line 74 "../grammar/lex.l"
 {
     return T_DIV;
 }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 76 "lex.l"
+#line 77 "../grammar/lex.l"
 {
     return T_COM;
 }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 79 "lex.l"
+#line 80 "../grammar/lex.l"
 {
     yylval.bool_val = true;
     return T_TRUE;
@@ -957,7 +958,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 83 "lex.l"
+#line 84 "../grammar/lex.l"
 {
     yylval.bool_val = false;
     return T_FALSE;
@@ -965,66 +966,66 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 87 "lex.l"
+#line 88 "../grammar/lex.l"
 {
     return T_EQ;
 }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 90 "lex.l"
+#line 91 "../grammar/lex.l"
 {
     return T_DIF;
 }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 93 "lex.l"
+#line 94 "../grammar/lex.l"
 {
     return T_GRTEQ;
 }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 96 "lex.l"
+#line 97 "../grammar/lex.l"
 {
     return T_LSSEQ;
 }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 99 "lex.l"
+#line 100 "../grammar/lex.l"
 {
     return T_AND;
 }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 102 "lex.l"
+#line 103 "../grammar/lex.l"
 {
     return T_OR;
 }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 105 "lex.l"
+#line 106 "../grammar/lex.l"
 {
     return T_NOT;
 }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 108 "lex.l"
+#line 109 "../grammar/lex.l"
 {
     yyerror("Unknown token! %c\n", *yytext);
 }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 111 "lex.l"
+#line 112 "../grammar/lex.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1028 "lex.yy.c"
+#line 1029 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2034,7 +2035,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 111 "lex.l"
+#line 112 "../grammar/lex.l"
 
 
 

@@ -2,6 +2,7 @@
     #include <stdio.h>
     #include <stdarg.h>
     #include <string>
+    #include "Scope.h"
     #include <iostream>
     #include "AST.h"
     #include <vector>

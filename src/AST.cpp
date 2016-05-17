@@ -18,6 +18,7 @@ void BlockNode::addNode(AbstractNode* node) {
 void BlockNode::printNode() const {
 	for (auto& node : nodes) {
 		node->printNode();
+		cout << endl;
 	}
 }
 
@@ -26,7 +27,7 @@ VariableNode::VariableNode(const string& name_, const Type& type) :
 }
 //Change later to support other streams
 void VariableNode::printNode() const {
-	cout << name << endl;
+	cout << name;
 }
 
 string VariableNode::getName() const {
@@ -54,7 +55,7 @@ IntegerNode::IntegerNode(int val) :
 }
 
 void IntegerNode::printNode() const {
-	cout << value << endl;
+	cout << value;
 }
 
 void BinaryNode::printNode() const {
@@ -63,8 +64,7 @@ void BinaryNode::printNode() const {
 	rhs->printNode();
 }
 
-BinaryNode::BinaryNode(ExpressionNode* lhs_,
-		ExpressionNode* rhs_) :
+BinaryNode::BinaryNode(ExpressionNode* lhs_, ExpressionNode* rhs_) :
 		lhs(lhs_), rhs(rhs_) {
 	Type lt = lhs_->getType();
 	Type rt = rhs_->getType();
@@ -74,8 +74,7 @@ BinaryNode::BinaryNode(ExpressionNode* lhs_,
 	initialize(newType->getTypeCode());
 }
 
-PlusBinaryNode::PlusBinaryNode(ExpressionNode* lhs,
-		ExpressionNode* rhs) :
+PlusBinaryNode::PlusBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 }
 
@@ -83,8 +82,7 @@ void PlusBinaryNode::printOperation() const {
 	cout << "+";
 }
 
-MinusBinaryNode::MinusBinaryNode(ExpressionNode* lhs,
-		ExpressionNode* rhs) :
+MinusBinaryNode::MinusBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 }
 
@@ -92,16 +90,15 @@ void MinusBinaryNode::printOperation() const {
 	cout << "-";
 }
 
-MultiplicationBinaryNode::MultiplicationBinaryNode(
-		ExpressionNode* lhs, ExpressionNode* rhs) :
+MultiplicationBinaryNode::MultiplicationBinaryNode(ExpressionNode* lhs,
+		ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 }
 void MultiplicationBinaryNode::printOperation() const {
 	cout << "*";
 }
 
-DivisionBinaryNode::DivisionBinaryNode(ExpressionNode* lhs,
-		ExpressionNode* rhs) :
+DivisionBinaryNode::DivisionBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryNode(lhs, rhs) {
 
 }
@@ -125,6 +122,43 @@ void OrBinaryNode::printOperation() const {
 	cout << " OR ";
 }
 
+GreaterThanBinaryNode::GreaterThanBinaryNode(ExpressionNode* lhs,
+		ExpressionNode* rhs) :
+		BinaryNode(lhs, rhs) {
+
+}
+
+void GreaterThanBinaryNode::printOperation() const {
+	cout << ">";
+}
+
+GreaterOrEqualThanBinaryNode::GreaterOrEqualThanBinaryNode(ExpressionNode* lhs,
+		ExpressionNode* rhs) :
+		BinaryNode(lhs, rhs) {
+
+}
+
+void GreaterOrEqualThanBinaryNode::printOperation() const {
+	cout << ">=";
+}
+
+LessThanBinaryNode::LessThanBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
+		BinaryNode(lhs, rhs) {
+
+}
+void LessThanBinaryNode::printOperation() const {
+	cout << "<";
+}
+
+LessOrEqualThanBinaryNode::LessOrEqualThanBinaryNode(ExpressionNode* lhs,
+		ExpressionNode* rhs) :
+		BinaryNode(lhs, rhs) {
+
+}
+void LessOrEqualThanBinaryNode::printOperation() const {
+	cout << "<=";
+}
+
 void UnaryNode::printNode() const {
 	printOperation();
 	node->printNode();
@@ -134,3 +168,49 @@ UnaryNode::UnaryNode(ExpressionNode* node_) :
 		node(node_) {
 }
 
+void RealNode::printNode() const {
+	cout << value;
+}
+RealNode::RealNode(const float val) :
+		value(val), ExpressionNode(AST::Type::TREAL) {
+
+}
+
+void BoolNode::printNode() const {
+	if (value) {
+		cout << " TRUE ";
+	} else {
+		cout << " FALSE ";
+	}
+}
+
+BoolNode::BoolNode(const bool value) :
+		value(value), ExpressionNode(TBOOL) {
+
+}
+
+NotUnaryNode::NotUnaryNode(ExpressionNode* node) :
+		UnaryNode(node) {
+
+}
+
+void NotUnaryNode::printOperation() const {
+	cout << "~";
+}
+
+EqualBinaryNode::EqualBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) : BinaryNode(lhs, rhs) {
+
+}
+
+void EqualBinaryNode::printOperation() const {
+	cout << "=";
+}
+
+
+DifferentBinaryNode::DifferentBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) : BinaryNode(lhs, rhs){
+
+}
+
+void DifferentBinaryNode::printOperation() const {
+	cout << "!=";
+}
