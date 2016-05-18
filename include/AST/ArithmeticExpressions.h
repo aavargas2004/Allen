@@ -7,7 +7,7 @@
 
 #ifndef ARITHMETICEXPRESSIONS_H_
 #define ARITHMETICEXPRESSIONS_H_
-
+#include "BaseTree.h"
 namespace AST {
 
 class BinaryNode: public ExpressionNode {

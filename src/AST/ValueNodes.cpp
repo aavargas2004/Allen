@@ -6,6 +6,7 @@
  */
 
 #include "AST/ValueNodes.h"
+#include "AST/BaseTree.h"
 #include <iostream>
 #include "Types/Types.h"
 

@@ -15,9 +15,7 @@ namespace AST {
 class BooleanExpressionNode : public ExpressionNode {
 public:
 	BooleanExpressionNode();
-	virtual void printNode() const;
-//TODO
-//Make binary expressions return booleans.
+	virtual void printNode() const = 0;
 };
 
 class BinaryBooleanExpressionNode : public BooleanExpressionNode {

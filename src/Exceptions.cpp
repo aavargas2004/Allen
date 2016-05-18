@@ -1,5 +1,5 @@
 #include "Exceptions.h"
-#include "Types.h"
+#include "Types/Types.h"
 
 using namespace AST;
 

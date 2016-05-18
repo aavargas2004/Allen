@@ -6,6 +6,7 @@
  */
 
 #include "AST/ArithmeticExpressions.h"
+#include "AST/BaseTree.h"
 #include <iostream>
 using namespace std;
 using namespace AST;

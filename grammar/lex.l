@@ -4,7 +4,7 @@
     #include <string>
     #include "Scope.h"
     #include <iostream>
-    #include "AST.h"
+    #include "AST/AST.h"
     #include <vector>
     #define YY_DECL int yylex()
     #include "parser.tab.h"

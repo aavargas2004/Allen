@@ -1,5 +1,5 @@
-#include "AST.h"
-#include "Types.h"
+#include "AST/AST.h"
+#include "Types/Types.h"
 #include <iostream>
 using AST::ExprType;
 using AST::Type;

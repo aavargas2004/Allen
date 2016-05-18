@@ -8,6 +8,7 @@
 #ifndef BASETREE_H_
 #define BASETREE_H_
 #include "Types/Types.h"
+#include <vector>
 
 namespace AST {
 

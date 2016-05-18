@@ -9,7 +9,7 @@
 #define SCOPE_H_
 #include <map>
 #include <string>
-#include "Types.h"
+#include "Types/Types.h"
 
 namespace AST {
 

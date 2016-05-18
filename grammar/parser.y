@@ -1,6 +1,6 @@
 %{
 #include <iostream>
-#include "AST.h"
+#include "AST/AST.h"
 #include "Scope.h"
 #include <cstdlib>
 #include <vector>

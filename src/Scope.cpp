@@ -5,8 +5,8 @@
  *      Author: mitthy
  */
 #include "Scope.h"
-#include "Types.h"
-#include "AST.h"
+#include "Types/Types.h"
+#include "AST/AST.h"
 #include <string>
 #include <iostream>
 

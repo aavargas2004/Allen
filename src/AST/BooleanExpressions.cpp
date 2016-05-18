@@ -5,13 +5,54 @@
  *      Author: mitthy
  */
 
-#include <AST/BooleanExpressions.h>
+#include "AST/BooleanExpressions.h"
+#include "AST/BaseTree.h"
 #include <iostream>
+#include "Types/Types.h"
+#include "Exceptions.h"
 using std::cout;
 using namespace AST;
 
+BooleanExpressionNode::BooleanExpressionNode() :
+		ExpressionNode(TBOOL) {
+
+}
+
+BinaryBooleanExpressionNode::BinaryBooleanExpressionNode(ExpressionNode* lhs,
+		ExpressionNode* rhs) :
+		BooleanExpressionNode(), lhs(lhs), rhs(rhs) {
+	auto typeptrleft = ExprType::makeType(lhs->getType());
+	auto typeptrright = ExprType::makeType(rhs->getType());
+	if (!typeptrleft->compatible(typeptrright.get())) {
+		throw IncompatibleTypeException(lhs->getType(), rhs->getType());
+	}
+}
+
+void BinaryBooleanExpressionNode::printNode() const {
+	lhs->printNode();
+	printOperation();
+	rhs->printNode();
+}
+
+UnaryBooleanExpressionNode::UnaryBooleanExpressionNode(ExpressionNode* node) :
+		node(node) {
+
+}
+
+void UnaryBooleanExpressionNode::printNode() const {
+	printOperation();
+	node->printNode();
+}
+
 AndBinaryNode::AndBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryBooleanExpressionNode(lhs, rhs) {
+	if ((lhs->getType() != Type::TBOOL) || (rhs->getType() != Type::TBOOL)) {
+		if (lhs->getType() != Type::TBOOL) {
+			throw InvalidType(lhs->getType());
+		} else {
+			throw InvalidType(rhs->getType());
+		}
+	}
 }
 void AndBinaryNode::printOperation() const {
 	cout << " AND ";
@@ -19,6 +60,13 @@ void AndBinaryNode::printOperation() const {
 
 OrBinaryNode::OrBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryBooleanExpressionNode(lhs, rhs) {
+	if ((lhs->getType() != Type::TBOOL) || (rhs->getType() != Type::TBOOL)) {
+		if (lhs->getType() != Type::TBOOL) {
+			throw InvalidType(lhs->getType());
+		} else {
+			throw InvalidType(rhs->getType());
+		}
+	}
 }
 
 void OrBinaryNode::printOperation() const {
@@ -60,5 +108,34 @@ LessOrEqualThanBinaryNode::LessOrEqualThanBinaryNode(ExpressionNode* lhs,
 }
 void LessOrEqualThanBinaryNode::printOperation() const {
 	cout << "<=";
+}
+
+EqualBinaryNode::EqualBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
+		BinaryBooleanExpressionNode(lhs, rhs) {
+
+}
+
+void EqualBinaryNode::printOperation() const {
+	cout << "=";
+}
+
+DifferentBinaryNode::DifferentBinaryNode(ExpressionNode* lhs,
+		ExpressionNode* rhs) :
+		BinaryBooleanExpressionNode(lhs, rhs) {
+
+}
+void DifferentBinaryNode::printOperation() const {
+	cout << "~=";
+}
+
+NotUnaryNode::NotUnaryNode(ExpressionNode* node) :
+		UnaryBooleanExpressionNode(node) {
+	if (node->getType() != Type::TBOOL) {
+		throw InvalidType(node->getType());
+	}
+}
+
+void NotUnaryNode::printOperation() const {
+	cout << "~";
 }
 

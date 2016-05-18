@@ -1,5 +1,6 @@
 NAME=../allc
-SRC=AST.cpp Exceptions.cpp main.cpp Scope.cpp Types.cpp
+SRC=AST/BaseTree.cpp AST/ArithmeticExpressions.cpp Exceptions.cpp main.cpp \
+ Scope.cpp Types/Types.cpp AST/BooleanExpressions.cpp AST/ValueNodes.cpp
 BISON=bison
 FLEX=flex
 CC=g++
