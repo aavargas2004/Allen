@@ -212,7 +212,7 @@ T_INT
 | 
 T_MINUS T_INT %prec UNARY_MINUS
 {
-    $$ = new AST::IntegerNode($2 * -1);
+    $$ = new AST::UnaryMinusNode(new AST::IntegerNode($2));
 }
 | 
 T_MINUS T_VARNAME %prec UNARY_MINUS
@@ -228,13 +228,13 @@ T_MINUS T_VARNAME %prec UNARY_MINUS
         std::exit(-1);
     }
     else {
-        $$ = new AST::VariableNode(std::string($2), variableSymbol->type);
+        $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), variableSymbol->type));
     }
 }
 |
 T_MINUS T_FLOAT %prec UNARY_MINUS
 {
-    $$ = new AST::RealNode($2 * -1);
+    $$ = new AST::UnaryMinusNode(new AST::RealNode($2));
 }
 |
 T_FLOAT

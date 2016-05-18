@@ -56,7 +56,14 @@ public:
 protected:
 	virtual void printOperation() const = 0;
 private:
-	AbstractNode* node;
+	ExpressionNode* node;
+};
+
+class UnaryMinusNode: public UnaryNode {
+public:
+	UnaryMinusNode(ExpressionNode* node);
+protected:
+	virtual void printOperation() const;
 };
 
 }

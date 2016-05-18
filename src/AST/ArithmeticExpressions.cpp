@@ -11,11 +11,11 @@
 using namespace std;
 using namespace AST;
 void BinaryNode::printNode() const {
-	cout <<"(";
+	cout << "(";
 	lhs->printNode();
 	printOperation();
 	rhs->printNode();
-	cout <<")";
+	cout << ")";
 }
 
 BinaryNode::BinaryNode(ExpressionNode* lhs_, ExpressionNode* rhs_) :
@@ -61,16 +61,24 @@ void DivisionBinaryNode::printOperation() const {
 	cout << "/";
 }
 
-
 UnaryNode::UnaryNode(ExpressionNode* node_) :
 		node(node_) {
+	initialize(node->getType());
 }
 
 void UnaryNode::printNode() const {
-	cout<<"(";
+	cout << "(";
 	printOperation();
 	node->printNode();
-	cout<<")";
+	cout << ")";
 }
 
+UnaryMinusNode::UnaryMinusNode(ExpressionNode* node) :
+		UnaryNode(node) {
+
+}
+
+void UnaryMinusNode::printOperation() const {
+	cout << "-";
+}
 
