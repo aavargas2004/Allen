@@ -39,6 +39,13 @@ AST::Scope* scope = new AST::Scope();
 %type<val_int> T_INT
 %type<val_float> T_FLOAT
 %type<boolNode> bool
+%left T_AND T_OR
+%left T_NOT
+%left T_GRT T_LSS T_EQ T_DIF T_GRTEQ T_LSSEQ 
+%left T_MINUS T_PLUS
+%left T_TIMES T_DIV
+%left UNARY_MINUS
+%start head
 %%
 
 head: 
@@ -201,6 +208,33 @@ T_VARNAME
 T_INT
 {
     $$ = new AST::IntegerNode($1);
+}
+| 
+T_MINUS T_INT %prec UNARY_MINUS
+{
+    $$ = new AST::IntegerNode($2 * -1);
+}
+| 
+T_MINUS T_VARNAME %prec UNARY_MINUS
+{
+    //Add support to unary minus operation on variables.
+      decltype(scope->searchScope(std::string($2))) variableSymbol;
+    if(!(variableSymbol = scope->searchScope(std::string($2)))) {
+        std::cerr << "Variavel não declarada usada em expressão " << std::string($2) <<std::endl;
+        std::exit(-1);
+    }
+    else if(!variableSymbol->defined){
+        std::cerr << "Variavel não definida usada em expressão " << std::string($2) << std::endl;
+        std::exit(-1);
+    }
+    else {
+        $$ = new AST::VariableNode(std::string($2), variableSymbol->type);
+    }
+}
+|
+T_MINUS T_FLOAT %prec UNARY_MINUS
+{
+    $$ = new AST::RealNode($2 * -1);
 }
 |
 T_FLOAT
