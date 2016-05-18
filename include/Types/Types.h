@@ -6,9 +6,17 @@
 namespace AST 
 {
 
+
+
 enum Type
 {
     TERROR = -1, TINT, TREAL, TBOOL
+};
+
+struct TypeArray {
+	AST::Type type;
+	bool isArray;
+	unsigned int size;
 };
 
 class ExprType;

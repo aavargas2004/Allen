@@ -18,8 +18,11 @@ public:
 	VariableNode(const std::string& name, const Type& type);
 	//Disables copy operation.
 	std::string getName() const;
+	bool isArray();
+	void setArray();
 private:
 	std::string name;
+	bool array = false;
 };
 
 class IntegerNode: public ExpressionNode {
@@ -44,6 +47,16 @@ public:
 	BoolNode(const bool value);
 private:
 	bool value;
+};
+
+//TODO
+//Implement this shit
+class ArrayNode : public VariableNode {
+public:
+	ArrayNode(const std::string& varName, Type varType, unsigned int size);
+	virtual void printNode() const;
+private:
+	unsigned int size;
 };
 
 

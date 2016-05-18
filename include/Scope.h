@@ -16,6 +16,8 @@ namespace AST {
 typedef struct _variableInfo {
 	bool defined;
 	AST::Type type;
+	bool isArray;
+	unsigned int arrSize;
 	_variableInfo();
 } variableInfo;
 
@@ -23,7 +25,8 @@ class ScopeNode {
 public:
 	ScopeNode(ScopeNode* previous);
 	bool searchScope(const std::string& name, variableInfo** outputInfo);
-	void addToScope(const std::string& name, const AST::Type& varType);
+	void addToScope(const std::string& name, const AST::Type& varType,
+			const bool& isArray, const unsigned int& arrSize);
 	ScopeNode* previousNode();
 	ScopeNode(const ScopeNode& rhs) = delete;
 	ScopeNode& operator=(const ScopeNode& rhs) = delete;
@@ -38,7 +41,8 @@ public:
 	Scope();
 	Scope(const Scope& rhs) = delete;
 	Scope& operator=(const Scope& rhs) = delete;
-	void addToScope(const std::string& name, const AST::Type& varType);
+	void addToScope(const std::string& name, const AST::Type& varType,
+			const bool& isArray, const unsigned int& arrSize);
 	~Scope();
 	void generateScope();
 	variableInfo* searchScope(const std::string& varName);

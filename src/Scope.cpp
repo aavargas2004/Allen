@@ -16,15 +16,19 @@ using namespace std;
 variableInfo::_variableInfo() {
 	this->defined = false;
 	this->type = Type::TERROR;
+
 }
 
 ScopeNode::ScopeNode(ScopeNode* previous) :
 		previous(previous) {
 }
 
-void ScopeNode::addToScope(const std::string& name, const AST::Type& varType) {
+void ScopeNode::addToScope(const std::string& name, const AST::Type& varType,
+		const bool& isArray, const unsigned int& arrSize) {
 	variableInfo varInfo;
 	varInfo.type = varType;
+	varInfo.isArray = isArray;
+	varInfo.arrSize = arrSize;
 	variableValMap[name] = varInfo;
 }
 
@@ -76,6 +80,7 @@ bool Scope::deleteScope() {
 	return false;
 }
 
-void Scope::addToScope(const std::string& name, const AST::Type& varType) {
-	tail->addToScope(name, varType);
+void Scope::addToScope(const std::string& name, const AST::Type& varType,
+		const bool& isArray, const unsigned int& arrSize) {
+	tail->addToScope(name, varType, isArray, arrSize);
 }

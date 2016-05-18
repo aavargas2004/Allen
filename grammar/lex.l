@@ -106,9 +106,16 @@ OR {
 "~" {
     return T_NOT;
 }
+"[" {
+    return T_LBR;
+}
+"]" {
+    return T_RBR;
+}
 . {
     yyerror("Unknown token! %c\n", *yytext);
 }
+
 %%
 
 void yyerror(const char *s, ...){

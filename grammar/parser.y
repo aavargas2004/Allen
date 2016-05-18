@@ -17,6 +17,7 @@ AST::Scope* scope = new AST::Scope();
     AST::AbstractNode* abstractNode;
     AST::BlockNode* nodeBlock;
     AST::Type type;
+    AST::TypeArray type_arr;
     AST::ExpressionNode* exprNode;
     AST::BoolNode* boolNode;
     const char* var_name;
@@ -28,8 +29,9 @@ AST::Scope* scope = new AST::Scope();
 }
 
 %token T_TINT T_TREAL T_TBOOL T_VARNAME T_INT T_FLOAT T_ASSIGN T_DECLVAR T_MINUS T_PLUS T_TIMES T_GRT T_LSS T_SMC T_LPR T_RPR T_DIV T_COM 
-%token T_TRUE T_FALSE T_EQ T_DIF T_GRTEQ T_LSSEQ T_AND T_OR T_NOT
-%type<type> tipo
+%token T_TRUE T_FALSE T_EQ T_DIF T_GRTEQ T_LSSEQ T_AND T_OR T_NOT T_LBR T_RBR
+%type<type> tipo_base
+%type<type_arr> tipo
 %type<varNameList> varlist
 %type<varList> declarevar
 %type<nodeBlock> head statements
@@ -92,6 +94,10 @@ T_VARNAME T_ASSIGN expr T_SMC
     decltype(scope->searchScope(std::string($1))) variableSymbol;
     if((variableSymbol = scope->searchScope(std::string($1))))
     {
+        if(variableSymbol->isArray) {
+            std::cerr << "Tentando atribuir valor a array." << std::endl;
+            std::exit(-1);
+        }
         auto typeExpr = AST::ExprType::makeType($3->getType());
         auto typeVarSymbol = AST::ExprType::makeType(variableSymbol->type);
         if(!(typeVarSymbol->compatible(typeExpr.get()))) 
@@ -105,6 +111,45 @@ T_VARNAME T_ASSIGN expr T_SMC
             std::cout << "Atribuicao de valor para variavel " << typeVarSymbol->getTypeName()
                 <<" " << $1 << " ";
             $3->printNode();            
+            std::cout << std::endl;
+            variableSymbol->defined = true;
+            //Gerar código de atribuição variável 
+        }
+    }
+    else
+    {
+        std::cerr << "Variável não declarada " << std::string($1) << std::endl;
+        std::exit(-1);
+    }
+}
+|
+T_VARNAME T_LBR expr T_RBR T_ASSIGN expr T_SMC
+{
+    auto variableSymbol = scope->searchScope(std::string($1));
+    if(variableSymbol)
+    {
+        if(!variableSymbol->isArray) {
+            std::cerr << "Tentando atribuir índice de variável não array." << std::endl;
+            std::exit(-1);
+        }
+        auto typeExpr = AST::ExprType::makeType($6->getType());
+        auto typeVarSymbol = AST::ExprType::makeType(variableSymbol->type);
+        if(!(typeVarSymbol->compatible(typeExpr.get()))) 
+        {
+            std::cerr << "Incompatible type: " << typeExpr->getTypeName() << " " << 
+                typeVarSymbol->getTypeName() << std::endl;
+            std::exit(-1);
+        }
+        if($3->getType() != AST::Type::TINT) {
+            std::cerr << "Tentando acessar índice não inteiro no array. Burro" << std::endl;
+            std::exit(-1);
+        }
+        else 
+        {
+            std::cout << "Atribuicao de valor para índice ";
+            $3->printNode(); 
+            std::cout << " do array " << $1 << " de tipo " << typeVarSymbol->getTypeName() <<" : ";
+            $6->printNode();            
             std::cout << std::endl;
             variableSymbol->defined = true;
             //Gerar código de atribuição variável 
@@ -200,8 +245,32 @@ T_VARNAME
         std::cerr << "Variavel não definida usada em expressão " << std::string($1) << std::endl;
         std::exit(-1);
     }
+    else if(variableSymbol->isArray) {
+        std::cerr << "Atribuindo valor arrayzal para alguma expressão. Não pode" << std::endl;
+        std::exit(-1);
+    }
     else {
         $$ = new AST::VariableNode(std::string($1), variableSymbol->type);
+    }
+}
+|
+T_VARNAME T_LBR expr T_RBR
+{
+    auto variableSymbol = scope->searchScope(std::string($1));
+    if(!variableSymbol) {
+        std::cerr << "Variavel não declarada." << std::endl;
+        std::exit(-1);
+    }
+    else if (!variableSymbol->defined) {
+        std::cerr << "Variavel não definida." << std::endl;
+        std::exit(-1); 
+    }
+    else if (!variableSymbol->isArray) {
+        std::cerr << "Tentando acessar o indice de array numa variavel que não é array." << std::endl;
+        std::exit(-1);
+    }
+    else {
+        $$ = new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->size);
     }
 }
 |
@@ -225,6 +294,10 @@ T_MINUS T_VARNAME %prec UNARY_MINUS
     }
     else if(!variableSymbol->defined){
         std::cerr << "Variavel não definida usada em expressão " << std::string($2) << std::endl;
+        std::exit(-1);
+    }
+    else if(variableSymbol->isArray) {
+        std::cerr << "Atribuindo valor arrayzal para alguma expressão. Não pode" << std::endl;
         std::exit(-1);
     }
     else {
@@ -263,7 +336,7 @@ T_FALSE
 declarevar: 
 tipo T_DECLVAR varlist T_SMC
 {
-    AST::Type type = $1;
+    AST::Type type = $1.type;
     std::vector<AST::VariableNode*>* varVec = new std::vector<AST::VariableNode*>();
     auto typeobjptr = AST::ExprType::makeType(type);
     std::cout << "Declaração de variável " << typeobjptr->getTypeName() << " ";
@@ -272,7 +345,7 @@ tipo T_DECLVAR varlist T_SMC
     {
     	std::cout << prefix << name;
         varVec->push_back(new AST::VariableNode(name, type));
-        scope->addToScope(name, type);
+        scope->addToScope(name, type, $1.isArray, $1.size);
         prefix = ", ";
     }
     std::cout << std::endl;
@@ -281,6 +354,25 @@ tipo T_DECLVAR varlist T_SMC
 ;
 
 tipo:
+tipo_base
+{
+    $$ = AST::TypeArray();
+    $$.type = $1;
+    $$.isArray = false;
+    $$.size = 0;
+    
+}
+|
+tipo_base T_LBR T_INT T_RBR
+{
+    $$ = AST::TypeArray();
+    $$.type = $1;
+    $$.isArray = true;
+    $$.size = $3;
+}
+;
+
+tipo_base:
 T_TINT
 {
     $$ = AST::Type::TINT;
