@@ -7,7 +7,6 @@
 
 #ifndef VALUENODES_H_
 #define VALUENODES_H_
-
 #include "AST/BaseTree.h"
 
 namespace AST {
@@ -57,6 +56,16 @@ public:
 	virtual void printNode() const;
 private:
 	unsigned int size;
+};
+
+//TODO
+//Implement this shit
+class ArrayAccessNode : public ExpressionNode {
+public:
+	ArrayAccessNode(ArrayNode* array, ExpressionNode* accessExpr);
+private:
+	ArrayNode* arr;
+	ExpressionNode* index;
 };
 
 
