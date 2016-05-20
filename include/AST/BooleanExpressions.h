@@ -11,24 +11,23 @@
 
 namespace AST {
 
-
-class BooleanExpressionNode : public ExpressionNode {
+class BooleanExpressionNode: public ExpressionNode {
 public:
 	BooleanExpressionNode();
 	virtual void printNode() const = 0;
 };
 
-class BinaryBooleanExpressionNode : public BooleanExpressionNode {
+class BinaryBooleanExpressionNode: public BooleanExpressionNode {
 public:
 	BinaryBooleanExpressionNode(ExpressionNode* lhs, ExpressionNode* rhs);
 	virtual void printNode() const;
 protected:
 	virtual void printOperation() const = 0;
 private:
-	ExpressionNode* lhs, * rhs;
+	ExpressionNode* lhs, *rhs;
 };
 
-class UnaryBooleanExpressionNode : public BooleanExpressionNode {
+class UnaryBooleanExpressionNode: public BooleanExpressionNode {
 public:
 	UnaryBooleanExpressionNode(ExpressionNode* node);
 	virtual void printNode() const;
@@ -45,42 +44,42 @@ protected:
 	virtual void printOperation() const;
 };
 
-class GreaterThanBinaryNode : public BinaryBooleanExpressionNode {
+class GreaterThanBinaryNode: public BinaryBooleanExpressionNode {
 public:
 	GreaterThanBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs);
 protected:
 	virtual void printOperation() const;
 };
 
-class GreaterOrEqualThanBinaryNode : public BinaryBooleanExpressionNode {
+class GreaterOrEqualThanBinaryNode: public BinaryBooleanExpressionNode {
 public:
 	GreaterOrEqualThanBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs);
 protected:
 	virtual void printOperation() const;
 };
 
-class LessThanBinaryNode : public BinaryBooleanExpressionNode {
+class LessThanBinaryNode: public BinaryBooleanExpressionNode {
 public:
 	LessThanBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs);
 protected:
 	virtual void printOperation() const;
 };
 
-class LessOrEqualThanBinaryNode : public BinaryBooleanExpressionNode {
+class LessOrEqualThanBinaryNode: public BinaryBooleanExpressionNode {
 public:
 	LessOrEqualThanBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs);
 protected:
 	virtual void printOperation() const;
 };
 
-class EqualBinaryNode : public BinaryBooleanExpressionNode {
+class EqualBinaryNode: public BinaryBooleanExpressionNode {
 public:
 	EqualBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs);
 protected:
 	virtual void printOperation() const;
 };
 
-class DifferentBinaryNode : public BinaryBooleanExpressionNode {
+class DifferentBinaryNode: public BinaryBooleanExpressionNode {
 public:
 	DifferentBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs);
 protected:
@@ -94,12 +93,14 @@ protected:
 	virtual void printOperation() const;
 };
 
-class NotUnaryNode : public UnaryBooleanExpressionNode {
+class NotUnaryNode: public UnaryBooleanExpressionNode {
 public:
 	NotUnaryNode(ExpressionNode* node);
 protected:
 	virtual void printOperation() const;
 };
+
+//Implement
 
 
 }

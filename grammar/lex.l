@@ -20,6 +20,22 @@ digito      [0-9] //Expressão regular que dá match em qualquer número de 0 a 
 
 [ \t\n]     ; //Ignora espaços em branco.
  
+if {
+    return T_IF;
+}
+
+then {
+    return T_THEN;
+}
+
+else {
+    return T_ELSE;
+}
+
+end {
+    return T_END;
+}
+
 int {
     return T_TINT;
 }

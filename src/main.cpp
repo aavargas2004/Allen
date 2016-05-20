@@ -14,4 +14,5 @@ extern AST::BlockNode* root;
 
 int main() {
     yyparse();
+    root->printNode();
 }

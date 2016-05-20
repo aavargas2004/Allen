@@ -16,6 +16,8 @@ using namespace std;
 variableInfo::_variableInfo() {
 	this->defined = false;
 	this->type = Type::TERROR;
+	this->isArray = false;
+	this->arrSize = 0;
 
 }
 

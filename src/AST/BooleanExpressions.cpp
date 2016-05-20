@@ -29,9 +29,13 @@ BinaryBooleanExpressionNode::BinaryBooleanExpressionNode(ExpressionNode* lhs,
 }
 
 void BinaryBooleanExpressionNode::printNode() const {
+	cout << "(";
 	lhs->printNode();
+	cout << "(";
 	printOperation();
+	cout << ")";
 	rhs->printNode();
+	cout << ")";
 }
 
 UnaryBooleanExpressionNode::UnaryBooleanExpressionNode(ExpressionNode* node) :
@@ -55,7 +59,7 @@ AndBinaryNode::AndBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 	}
 }
 void AndBinaryNode::printOperation() const {
-	cout << " AND ";
+	cout << "e booleano ";
 }
 
 OrBinaryNode::OrBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -70,7 +74,7 @@ OrBinaryNode::OrBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 }
 
 void OrBinaryNode::printOperation() const {
-	cout << " OR ";
+	cout << "ou booleano ";
 }
 
 GreaterThanBinaryNode::GreaterThanBinaryNode(ExpressionNode* lhs,
@@ -80,7 +84,7 @@ GreaterThanBinaryNode::GreaterThanBinaryNode(ExpressionNode* lhs,
 }
 
 void GreaterThanBinaryNode::printOperation() const {
-	cout << ">";
+	cout << "maior booleano ";
 }
 
 GreaterOrEqualThanBinaryNode::GreaterOrEqualThanBinaryNode(ExpressionNode* lhs,
@@ -90,7 +94,7 @@ GreaterOrEqualThanBinaryNode::GreaterOrEqualThanBinaryNode(ExpressionNode* lhs,
 }
 
 void GreaterOrEqualThanBinaryNode::printOperation() const {
-	cout << ">=";
+	cout << "maior ou igual booleano ";
 }
 
 LessThanBinaryNode::LessThanBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -98,7 +102,7 @@ LessThanBinaryNode::LessThanBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs)
 
 }
 void LessThanBinaryNode::printOperation() const {
-	cout << "<";
+	cout << "menor booleano ";
 }
 
 LessOrEqualThanBinaryNode::LessOrEqualThanBinaryNode(ExpressionNode* lhs,
@@ -107,7 +111,7 @@ LessOrEqualThanBinaryNode::LessOrEqualThanBinaryNode(ExpressionNode* lhs,
 
 }
 void LessOrEqualThanBinaryNode::printOperation() const {
-	cout << "<=";
+	cout << "menor ou igual booleano ";
 }
 
 EqualBinaryNode::EqualBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -116,7 +120,7 @@ EqualBinaryNode::EqualBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 }
 
 void EqualBinaryNode::printOperation() const {
-	cout << "=";
+	cout << "igual booleano ";
 }
 
 DifferentBinaryNode::DifferentBinaryNode(ExpressionNode* lhs,
@@ -125,7 +129,7 @@ DifferentBinaryNode::DifferentBinaryNode(ExpressionNode* lhs,
 
 }
 void DifferentBinaryNode::printOperation() const {
-	cout << "~=";
+	cout << "diferente booleano ";
 }
 
 NotUnaryNode::NotUnaryNode(ExpressionNode* node) :
@@ -136,6 +140,8 @@ NotUnaryNode::NotUnaryNode(ExpressionNode* node) :
 }
 
 void NotUnaryNode::printOperation() const {
-	cout << "~";
+	cout << "nao booleano ";
 }
+
+
 

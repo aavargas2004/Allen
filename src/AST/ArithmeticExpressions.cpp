@@ -11,9 +11,13 @@
 using namespace std;
 using namespace AST;
 void BinaryNode::printNode() const {
-	cout << "(";
+	cout << "( ";
 	lhs->printNode();
+	cout << "(";
 	printOperation();
+	auto typePtr = ExprType::makeType(getType());
+	std::cout << typePtr->getTypeName() << " ";
+	cout << ")";
 	rhs->printNode();
 	cout << ")";
 }
@@ -33,7 +37,7 @@ PlusBinaryNode::PlusBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 }
 
 void PlusBinaryNode::printOperation() const {
-	cout << "+";
+	cout << "soma ";
 }
 
 MinusBinaryNode::MinusBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -41,7 +45,7 @@ MinusBinaryNode::MinusBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 }
 
 void MinusBinaryNode::printOperation() const {
-	cout << "-";
+	cout << "subtracao ";
 }
 
 MultiplicationBinaryNode::MultiplicationBinaryNode(ExpressionNode* lhs,
@@ -49,7 +53,7 @@ MultiplicationBinaryNode::MultiplicationBinaryNode(ExpressionNode* lhs,
 		BinaryNode(lhs, rhs) {
 }
 void MultiplicationBinaryNode::printOperation() const {
-	cout << "*";
+	cout << "multiplicacao ";
 }
 
 DivisionBinaryNode::DivisionBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -58,7 +62,7 @@ DivisionBinaryNode::DivisionBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs)
 }
 
 void DivisionBinaryNode::printOperation() const {
-	cout << "/";
+	cout << "divisao ";
 }
 
 UnaryNode::UnaryNode(ExpressionNode* node_) :
@@ -67,8 +71,10 @@ UnaryNode::UnaryNode(ExpressionNode* node_) :
 }
 
 void UnaryNode::printNode() const {
-	cout << "(";
+	cout << "( ";
 	printOperation();
+	auto typePtr = ExprType::makeType(getType());
+	std::cout << typePtr->getTypeName() << " ";
 	node->printNode();
 	cout << ")";
 }
@@ -79,6 +85,6 @@ UnaryMinusNode::UnaryMinusNode(ExpressionNode* node) :
 }
 
 void UnaryMinusNode::printOperation() const {
-	cout << "-";
+	cout << "menos unario ";
 }
 

@@ -19,28 +19,32 @@ AST::Scope* scope = new AST::Scope();
     AST::Type type;
     AST::TypeArray type_arr;
     AST::ExpressionNode* exprNode;
+    AST::DeclareVariableNode* declvarNode;
+    AST::DefineVariableNode* defVar;
     AST::BoolNode* boolNode;
+    AST::IfNode* ifNode;
     const char* var_name;
     std::vector<std::string>* varNameList;
-    std::vector<AST::VariableNode*>* varList;
     int val_int;
     double val_float;
     bool bool_val;
 }
 
 %token T_TINT T_TREAL T_TBOOL T_VARNAME T_INT T_FLOAT T_ASSIGN T_DECLVAR T_MINUS T_PLUS T_TIMES T_GRT T_LSS T_SMC T_LPR T_RPR T_DIV T_COM 
-%token T_TRUE T_FALSE T_EQ T_DIF T_GRTEQ T_LSSEQ T_AND T_OR T_NOT T_LBR T_RBR
+%token T_TRUE T_FALSE T_EQ T_DIF T_GRTEQ T_LSSEQ T_AND T_OR T_NOT T_LBR T_RBR 
+%token T_IF T_THEN T_ELSE T_END
 %type<type> tipo_base
 %type<type_arr> tipo
 %type<varNameList> varlist
-%type<varList> declarevar
 %type<nodeBlock> head statements
 %type<abstractNode> statement valattr
+%type<declvarNode> declarevar
 %type<var_name> T_VARNAME
 %type<exprNode> expr
 %type<val_int> T_INT
 %type<val_float> T_FLOAT
 %type<boolNode> bool
+%type<ifNode> conditional
 %left T_AND T_OR
 %left T_NOT
 %left T_GRT T_LSS T_EQ T_DIF T_GRTEQ T_LSSEQ 
@@ -74,17 +78,29 @@ statement
 statement:
 declarevar
 {
-    AST::BlockNode* node = new AST::BlockNode();
-    for(auto var : *($1))
-    { 
-        node->addNode(var);
-    }
-    $$ = node;    
+    $$ = $1;   
 }
 |
 valattr
 {
     $$ = $1;
+}
+|
+conditional
+{
+    $$ = $1;
+}
+;
+
+conditional: 
+T_IF expr T_THEN statements T_END T_IF T_SMC
+{
+    $$ = new AST::IfNode($2, $4);
+}
+|
+T_IF expr T_THEN statements T_ELSE statements T_END T_IF T_SMC
+{
+    $$ = new AST::IfNode($2, $4, $6);
 }
 ;
 
@@ -108,10 +124,7 @@ T_VARNAME T_ASSIGN expr T_SMC
         }
         else 
         {
-            std::cout << "Atribuicao de valor para variavel " << typeVarSymbol->getTypeName()
-                <<" " << $1 << " ";
-            $3->printNode();            
-            std::cout << std::endl;
+            $$ = new AST::DefineVariableNode(new AST::VariableNode(std::string($1), variableSymbol->type), $3);
             variableSymbol->defined = true;
             //Gerar código de atribuição variável 
         }
@@ -146,11 +159,7 @@ T_VARNAME T_LBR expr T_RBR T_ASSIGN expr T_SMC
         }
         else 
         {
-            std::cout << "Atribuicao de valor para índice ";
-            $3->printNode(); 
-            std::cout << " do array " << $1 << " de tipo " << typeVarSymbol->getTypeName() <<" : ";
-            $6->printNode();            
-            std::cout << std::endl;
+            $$ = new AST::DefineVariableNode(new AST::ArrayAccessNode(new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->arrSize), $3 ),$6);
             variableSymbol->defined = true;
             //Gerar código de atribuição variável 
         }
@@ -270,7 +279,7 @@ T_VARNAME T_LBR expr T_RBR
         std::exit(-1);
     }
     else {
-        $$ = new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->size);
+        $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->arrSize), $3);
     }
 }
 |
@@ -302,6 +311,26 @@ T_MINUS T_VARNAME %prec UNARY_MINUS
     }
     else {
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), variableSymbol->type));
+    }
+}
+|
+T_MINUS T_VARNAME T_LBR expr T_RBR
+{
+  decltype(scope->searchScope(std::string($2))) variableSymbol;
+    if(!(variableSymbol = scope->searchScope(std::string($2)))) {
+        std::cerr << "Variavel não declarada usada em expressão " << std::string($2) <<std::endl;
+        std::exit(-1);
+    }
+    else if(!variableSymbol->defined){
+        std::cerr << "Variavel não definida usada em expressão " << std::string($2) << std::endl;
+        std::exit(-1);
+    }
+    else if(!variableSymbol->isArray) {
+        std::cerr << "Tentando acessar índice de não array" << std::endl;
+        std::exit(-1);
+    }
+    else {
+        $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), variableSymbol->type, variableSymbol->arrSize), $4));
     }
 }
 |
@@ -338,18 +367,17 @@ tipo T_DECLVAR varlist T_SMC
 {
     AST::Type type = $1.type;
     std::vector<AST::VariableNode*>* varVec = new std::vector<AST::VariableNode*>();
-    auto typeobjptr = AST::ExprType::makeType(type);
-    std::cout << "Declaração de variável " << typeobjptr->getTypeName() << " ";
-    std::string prefix = "";
     for(auto& name : *($3))
     {
-    	std::cout << prefix << name;
         varVec->push_back(new AST::VariableNode(name, type));
         scope->addToScope(name, type, $1.isArray, $1.size);
-        prefix = ", ";
     }
-    std::cout << std::endl;
-    $$ = varVec;
+    if($1.isArray) {
+        $$ = new AST::DeclareVariableNode(varVec, $1.size);
+    }
+    else {
+        $$ = new AST::DeclareVariableNode(varVec);
+    }
 }
 ;
 

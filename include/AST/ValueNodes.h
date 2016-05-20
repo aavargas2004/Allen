@@ -8,6 +8,7 @@
 #ifndef VALUENODES_H_
 #define VALUENODES_H_
 #include "AST/BaseTree.h"
+#include <vector>
 
 namespace AST {
 
@@ -17,8 +18,12 @@ public:
 	VariableNode(const std::string& name, const Type& type);
 	//Disables copy operation.
 	std::string getName() const;
-	bool isArray();
+	virtual VariableNode* at(int pos);
+	virtual void set(int pos, ExpressionNode* expr);
+	virtual bool isArray();
 	void setArray();
+	void set(ExpressionNode* expr);
+	static VariableNode* makeVariable(const std::string& name, const Type& type);
 private:
 	std::string name;
 	bool array = false;
@@ -53,16 +58,24 @@ private:
 class ArrayNode : public VariableNode {
 public:
 	ArrayNode(const std::string& varName, Type varType, unsigned int size);
+	virtual VariableNode* at(int pos);
 	virtual void printNode() const;
+	virtual void set(int pos, ExpressionNode* expr);
+	virtual bool isArray();
 private:
 	unsigned int size;
+	std::vector<VariableNode*> vars;
 };
 
 //TODO
 //Implement this shit
-class ArrayAccessNode : public ExpressionNode {
+class ArrayAccessNode : public VariableNode {
 public:
 	ArrayAccessNode(ArrayNode* array, ExpressionNode* accessExpr);
+	virtual void printNode() const;
+	virtual VariableNode* at(int pos);
+	virtual void set(int pos, ExpressionNode* expr);
+	virtual bool isArray();
 private:
 	ArrayNode* arr;
 	ExpressionNode* index;
