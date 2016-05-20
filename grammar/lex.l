@@ -24,6 +24,22 @@ do {
     return T_DO;
 }
  
+def {
+    return T_DEF;
+}
+
+decl {
+    return T_DECL;
+}
+
+fun {
+    return T_FUN;
+}
+
+return {
+    return T_RETURN;
+}
+
 if {
     return T_IF;
 }

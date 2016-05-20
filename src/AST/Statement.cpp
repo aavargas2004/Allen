@@ -55,17 +55,17 @@ IfNode::IfNode(ExpressionNode* condition, BlockNode* then) :
 }
 
 void IfNode::printNode() const {
-	cout << "if (";
+	cout << "Expressao condicional" << endl;
+	cout << "+se: ";
 	condition->printNode();
-	cout << ")" << endl;
-	cout << "then " << endl;
+	cout << endl << "+entao: " << endl;
 	thenNode->printNode();
 	if (elseNode) {
 
-		cout << "else " << endl;
+		cout << "+senao: " << endl;
 		elseNode->printNode();
 	}
-	cout << "end if";
+	cout << "Fim expressao condicional";
 }
 
 DefineVariableNode::DefineVariableNode(VariableNode* var, ExpressionNode* value) : var(var), expr(value) {
@@ -90,9 +90,11 @@ WhileNode::WhileNode(ExpressionNode* condition, BlockNode* statements) : conditi
 
 
 void WhileNode::printNode() const {
-	cout << "While ";
+	cout << "Laco" << endl;
+	cout << "+enquanto: ";
 	condition->printNode();
-	cout << endl << "do" << endl;
+	cout << endl;
+	cout << "+faca:" << endl;
 	statements->printNode();
-	cout << "End while";
+	cout << "Fim laco";
 }

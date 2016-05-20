@@ -33,7 +33,7 @@ AST::Scope* scope = new AST::Scope();
 
 %token T_TINT T_TREAL T_TBOOL T_VARNAME T_INT T_FLOAT T_ASSIGN T_DECLVAR T_MINUS T_PLUS T_TIMES T_GRT T_LSS T_SMC T_LPR T_RPR T_DIV T_COM 
 %token T_TRUE T_FALSE T_EQ T_DIF T_GRTEQ T_LSSEQ T_AND T_OR T_NOT T_LBR T_RBR 
-%token T_IF T_THEN T_ELSE T_END T_WHILE T_DO
+%token T_IF T_THEN T_ELSE T_END T_WHILE T_DO T_DEF T_DECL T_FUN T_RETURN
 %type<type> tipo_base
 %type<type_arr> tipo
 %type<varNameList> varlist
@@ -96,6 +96,32 @@ conditional
 whileloop
 {
     $$ = $1;
+}
+|
+funct
+{
+    $$ = $1;
+}
+;
+
+funct:
+T_DEF T_FUN tipo_base T_DECLVAR T_VARNAME createscope T_LPR arglist T_RPT funcbody destroyscope T_END T_DEF
+//TODO
+{
+}
+;
+
+funcbody:
+//TODO
+;
+
+arglist:
+arglist T_COM tipo_base T_DECLVAR T_VARNAME
+{
+}
+|
+tipo_base T_DECLVAR T_VARNAME
+{
 }
 ;
 

@@ -2,7 +2,8 @@ int: i, j;
 real: a;
 bool: comp;
 a := 10.0 + .57 - 2.;
-
+i := -2;
+j := i * ( 3 / 5);
 comp := a > j;
 comp:= TRUE;
 int[10]: ar;
@@ -15,7 +16,7 @@ ar [ j - 1 ] := 0;
 i := ar[1];
 int: i;
 bool: true;
-if 10.0 > -2
+if 10.0 > -2.0
 then
 i:=5;
 else i:= 3;
