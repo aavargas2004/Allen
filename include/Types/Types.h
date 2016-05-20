@@ -32,6 +32,7 @@ public:
     virtual ~ExprType();
     virtual type_ptr getNewType(const ExprType* other) const;
     virtual std::string getTypeName() const = 0;
+    virtual std::string getTypeNameMasculino() const = 0;
 protected:
     static const std::map<Type, std::map<Type, Type>>& getTypeMap();
 private:
@@ -43,6 +44,7 @@ class TypeInteger: public ExprType
 public:
     virtual Type getTypeCode() const;
     virtual std::string getTypeName() const;
+    virtual std::string getTypeNameMasculino() const;
 };
 
 class TypeDouble: public ExprType
@@ -50,6 +52,7 @@ class TypeDouble: public ExprType
 public:
     virtual Type getTypeCode() const;
     virtual std::string getTypeName() const;
+    virtual std::string getTypeNameMasculino() const;
 };
 
 class TypeBool: public ExprType 
@@ -57,6 +60,7 @@ class TypeBool: public ExprType
 public:
     virtual Type getTypeCode() const;
     virtual std::string getTypeName() const;
+    virtual std::string getTypeNameMasculino() const;
 };
 
 }

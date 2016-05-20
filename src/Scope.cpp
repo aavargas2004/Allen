@@ -63,7 +63,8 @@ Scope::~Scope() {
 }
 
 void Scope::generateScope() {
-
+	ScopeNode* next = new ScopeNode(tail);
+	tail = next;
 }
 
 variableInfo* Scope::searchScope(const std::string& varName) {

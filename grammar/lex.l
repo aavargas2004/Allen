@@ -19,6 +19,10 @@ digito      [0-9] //Expressão regular que dá match em qualquer número de 0 a 
 %%
 
 [ \t\n]     ; //Ignora espaços em branco.
+
+do {
+    return T_DO;
+}
  
 if {
     return T_IF;
@@ -26,6 +30,10 @@ if {
 
 then {
     return T_THEN;
+}
+
+while {
+    return T_WHILE;
 }
 
 else {

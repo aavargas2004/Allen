@@ -23,6 +23,7 @@ AST::Scope* scope = new AST::Scope();
     AST::DefineVariableNode* defVar;
     AST::BoolNode* boolNode;
     AST::IfNode* ifNode;
+    AST::WhileNode* whileNode;
     const char* var_name;
     std::vector<std::string>* varNameList;
     int val_int;
@@ -32,12 +33,12 @@ AST::Scope* scope = new AST::Scope();
 
 %token T_TINT T_TREAL T_TBOOL T_VARNAME T_INT T_FLOAT T_ASSIGN T_DECLVAR T_MINUS T_PLUS T_TIMES T_GRT T_LSS T_SMC T_LPR T_RPR T_DIV T_COM 
 %token T_TRUE T_FALSE T_EQ T_DIF T_GRTEQ T_LSSEQ T_AND T_OR T_NOT T_LBR T_RBR 
-%token T_IF T_THEN T_ELSE T_END
+%token T_IF T_THEN T_ELSE T_END T_WHILE T_DO
 %type<type> tipo_base
 %type<type_arr> tipo
 %type<varNameList> varlist
 %type<nodeBlock> head statements
-%type<abstractNode> statement valattr
+%type<abstractNode> statement valattr createscope destroyscope
 %type<declvarNode> declarevar
 %type<var_name> T_VARNAME
 %type<exprNode> expr
@@ -45,6 +46,7 @@ AST::Scope* scope = new AST::Scope();
 %type<val_float> T_FLOAT
 %type<boolNode> bool
 %type<ifNode> conditional
+%type<whileNode> whileloop
 %left T_AND T_OR
 %left T_NOT
 %left T_GRT T_LSS T_EQ T_DIF T_GRTEQ T_LSSEQ 
@@ -90,17 +92,33 @@ conditional
 {
     $$ = $1;
 }
+|
+whileloop
+{
+    $$ = $1;
+}
+;
+
+whileloop:
+T_WHILE expr T_DO createscope statements destroyscope T_END T_WHILE 
+{
+    if($2->getType() != AST::TBOOL) {
+        std::cerr << "Expressão não booleana no laço." << std::endl;
+        std::exit(-1);
+    }
+    $$ = new AST::WhileNode($2, $5);
+}
 ;
 
 conditional: 
-T_IF expr T_THEN statements T_END T_IF T_SMC
+T_IF expr T_THEN createscope statements destroyscope T_END T_IF
 {
-    $$ = new AST::IfNode($2, $4);
+    $$ = new AST::IfNode($2, $5);
 }
 |
-T_IF expr T_THEN statements T_ELSE statements T_END T_IF T_SMC
+T_IF expr T_THEN createscope statements destroyscope T_ELSE createscope statements destroyscope T_END T_IF
 {
-    $$ = new AST::IfNode($2, $4, $6);
+    $$ = new AST::IfNode($2, $5, $9);
 }
 ;
 
@@ -429,6 +447,21 @@ T_VARNAME
 	$$->push_back(std::string($1));
 }
 ;
+
+createscope:
+{
+    scope->generateScope();
+    $$ = NULL;    
+}
+;
+
+destroyscope:
+{
+    $$ = NULL;
+    scope->deleteScope();
+}
+;
+
 
 %%
 

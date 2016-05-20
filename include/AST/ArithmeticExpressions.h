@@ -12,13 +12,13 @@ namespace AST {
 
 class BinaryNode: public ExpressionNode {
 public:
-	virtual void printNode() const;
 	BinaryNode(ExpressionNode* lhs, ExpressionNode* rhs);
 protected:
+	virtual void printExpression() const;
 	virtual void printOperation() const = 0;
 private:
-	AbstractNode* lhs;
-	AbstractNode* rhs;
+	ExpressionNode* lhs;
+	ExpressionNode* rhs;
 };
 
 class PlusBinaryNode: public BinaryNode {
@@ -51,9 +51,9 @@ protected:
 
 class UnaryNode: public ExpressionNode {
 public:
-	virtual void printNode() const;
 	UnaryNode(ExpressionNode* node);
 protected:
+	virtual void printExpression() const;
 	virtual void printOperation() const = 0;
 private:
 	ExpressionNode* node;
@@ -64,6 +64,15 @@ public:
 	UnaryMinusNode(ExpressionNode* node);
 protected:
 	virtual void printOperation() const;
+};
+
+class ParenthesisNode : public ExpressionNode {
+public:
+	ParenthesisNode(ExpressionNode* expr);
+protected:
+	virtual void printExpression() const;
+private:
+	ExpressionNode* expression;
 };
 
 }

@@ -14,15 +14,15 @@ ExprType::~ExprType() {
 }
 
 string TypeInteger::getTypeName() const {
-	return string("Integer");
+	return string("inteira");
 }
 
 string TypeDouble::getTypeName() const {
-	return string("Real");
+	return string("real");
 }
 
 string TypeBool::getTypeName() const {
-	return string("Bool");
+	return string("booleana");
 }
 
 type_ptr ExprType::makeType(Type typeCode) 
@@ -106,5 +106,17 @@ Type TypeDouble::getTypeCode() const
 Type TypeBool::getTypeCode() const
 {
     return TBOOL;
+}
+
+std::string TypeBool::getTypeNameMasculino() const {
+	return "booleano";
+}
+
+std::string TypeDouble::getTypeNameMasculino() const {
+	return "real";
+}
+
+std::string TypeInteger::getTypeNameMasculino() const {
+	return "inteiro";
 }
 

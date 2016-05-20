@@ -14,15 +14,14 @@ namespace AST {
 class BooleanExpressionNode: public ExpressionNode {
 public:
 	BooleanExpressionNode();
-	virtual void printNode() const = 0;
 };
 
 class BinaryBooleanExpressionNode: public BooleanExpressionNode {
 public:
 	BinaryBooleanExpressionNode(ExpressionNode* lhs, ExpressionNode* rhs);
-	virtual void printNode() const;
 protected:
 	virtual void printOperation() const = 0;
+	virtual void printExpression() const;
 private:
 	ExpressionNode* lhs, *rhs;
 };
@@ -30,9 +29,9 @@ private:
 class UnaryBooleanExpressionNode: public BooleanExpressionNode {
 public:
 	UnaryBooleanExpressionNode(ExpressionNode* node);
-	virtual void printNode() const;
 protected:
 	virtual void printOperation() const = 0;
+	virtual void printExpression() const;
 private:
 	ExpressionNode* node;
 };

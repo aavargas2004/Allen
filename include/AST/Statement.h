@@ -47,6 +47,15 @@ private:
 	ExpressionNode* expr;
 };
 
+class WhileNode : public AbstractNode {
+public:
+	WhileNode(ExpressionNode* condition, BlockNode* statements);
+	virtual void printNode() const;
+private:
+	ExpressionNode* condition;
+	BlockNode* statements;
+};
+
 }
 
 #endif /* STATEMENT_H_ */

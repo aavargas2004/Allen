@@ -8,18 +8,17 @@
 #include "AST/ArithmeticExpressions.h"
 #include "AST/BaseTree.h"
 #include <iostream>
+#include "Exceptions.h"
 using namespace std;
 using namespace AST;
-void BinaryNode::printNode() const {
-	cout << "( ";
+void BinaryNode::printExpression() const {
 	lhs->printNode();
 	cout << "(";
 	printOperation();
 	auto typePtr = ExprType::makeType(getType());
-	std::cout << typePtr->getTypeName() << " ";
-	cout << ")";
+	std::cout << typePtr->getTypeName();
+	cout << ") ";
 	rhs->printNode();
-	cout << ")";
 }
 
 BinaryNode::BinaryNode(ExpressionNode* lhs_, ExpressionNode* rhs_) :
@@ -30,6 +29,9 @@ BinaryNode::BinaryNode(ExpressionNode* lhs_, ExpressionNode* rhs_) :
 	auto ptrRT = ExprType::makeType(rt);
 	auto newType = ptrLT->getNewType(ptrRT.get());
 	initialize(newType->getTypeCode());
+	if (lhs->getType() == TBOOL || rhs->getType() == TBOOL) {
+		throw InvalidType(TBOOL);
+	}
 }
 
 PlusBinaryNode::PlusBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -70,13 +72,13 @@ UnaryNode::UnaryNode(ExpressionNode* node_) :
 	initialize(node->getType());
 }
 
-void UnaryNode::printNode() const {
-	cout << "( ";
+void UnaryNode::printExpression() const {
+	cout << "(";
 	printOperation();
 	auto typePtr = ExprType::makeType(getType());
 	std::cout << typePtr->getTypeName() << " ";
+	cout << ") ";
 	node->printNode();
-	cout << ")";
 }
 
 UnaryMinusNode::UnaryMinusNode(ExpressionNode* node) :
@@ -86,5 +88,16 @@ UnaryMinusNode::UnaryMinusNode(ExpressionNode* node) :
 
 void UnaryMinusNode::printOperation() const {
 	cout << "menos unario ";
+}
+
+ParenthesisNode::ParenthesisNode(ExpressionNode* expr) :
+		expression(expr) {
+
+}
+
+void ParenthesisNode::printExpression() const {
+	cout << "(abre paretenses) ";
+	expression->printNode();
+	cout << "(fecha parenteses)";
 }
 

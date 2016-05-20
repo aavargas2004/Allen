@@ -44,3 +44,13 @@ Type ExpressionNode::getType() const {
 	return type;
 }
 
+void ExpressionNode::printNode() const {
+	cout << "(";
+	printExpression();
+	cout << ") ";
+}
+
+void ExpressionNode::printExpression() const {
+	//EMPTY
+}
+

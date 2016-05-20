@@ -30,11 +30,12 @@ private:
 
 class ExpressionNode: public AbstractNode {
 public:
-	virtual void printNode() const = 0;
+	virtual void printNode() const;
 	ExpressionNode(Type type);
 	ExpressionNode();
 	Type getType() const;
 protected:
+	virtual void printExpression() const;
 	void initialize(const Type type);
 	Type type;
 };

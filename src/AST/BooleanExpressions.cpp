@@ -28,24 +28,10 @@ BinaryBooleanExpressionNode::BinaryBooleanExpressionNode(ExpressionNode* lhs,
 	}
 }
 
-void BinaryBooleanExpressionNode::printNode() const {
-	cout << "(";
-	lhs->printNode();
-	cout << "(";
-	printOperation();
-	cout << ")";
-	rhs->printNode();
-	cout << ")";
-}
 
 UnaryBooleanExpressionNode::UnaryBooleanExpressionNode(ExpressionNode* node) :
 		node(node) {
 
-}
-
-void UnaryBooleanExpressionNode::printNode() const {
-	printOperation();
-	node->printNode();
 }
 
 AndBinaryNode::AndBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -143,5 +129,18 @@ void NotUnaryNode::printOperation() const {
 	cout << "nao booleano ";
 }
 
+void BinaryBooleanExpressionNode::printExpression() const {
+	lhs->printNode();
+	cout << "(";
+	printExpression();
+	cout << ") ";
+	rhs->printNode();
+}
 
+void UnaryBooleanExpressionNode::printExpression() const {
+	cout << "(";
+	printExpression();
+	cout << ") ";
+	node->printNode();
+}
 

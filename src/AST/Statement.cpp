@@ -24,9 +24,12 @@ DeclareVariableNode::DeclareVariableNode(vector<VariableNode*>* declaredVar,
 void DeclareVariableNode::printNode() const {
 	VariableNode* firstVar = (*vec)[0];
 	auto typePtr = ExprType::makeType(firstVar->getType());
-	cout << "Declaracao de variavel " << typePtr->getTypeName();
-	if (isArray) {
-		cout << "[" << arrSize << "]";
+	cout << "Declaracao de ";
+	if(isArray) {
+		//TODO
+	}
+	else {
+		cout << "variavel " << typePtr->getTypeName();
 	}
 	cout << ":";
 	string prefix = " ";
@@ -72,7 +75,24 @@ DefineVariableNode::DefineVariableNode(VariableNode* var, ExpressionNode* value)
 }
 
 void DefineVariableNode::printNode() const {
-	cout << "Definicao variavel " << ExprType::makeType(var->getType())->getTypeName() << " " << var->getName()<< ": ";
+	cout << "Atribuicao de valor para ";
+	var->printNode();
+	cout << ": ";
 	expr->printNode();
 }
 
+
+WhileNode::WhileNode(ExpressionNode* condition, BlockNode* statements) : condition(condition), statements(statements){
+	if(condition->getType() != TBOOL) {
+		throw InvalidType(condition->getType());
+	}
+}
+
+
+void WhileNode::printNode() const {
+	cout << "While ";
+	condition->printNode();
+	cout << endl << "do" << endl;
+	statements->printNode();
+	cout << "End while";
+}
