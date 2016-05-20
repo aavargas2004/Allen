@@ -21,11 +21,11 @@ IntegerNode::IntegerNode(int val) :
 }
 
 void IntegerNode::printNode() const {
-	cout << "valor inteiro " << value << " ";
+	cout << "valor inteiro " << value ;
 }
 
 void RealNode::printNode() const {
-	cout << "valor real " << value << " ";
+	cout << "valor real " << value;
 }
 RealNode::RealNode(const float val) :
 		value(val), ExpressionNode(AST::Type::TREAL) {
@@ -53,7 +53,7 @@ void VariableNode::printNode() const {
 
 	cout << "variavel ";
 	auto typePtr = ExprType::makeType(getType());
-	cout << typePtr->getTypeName() << " ";
+	cout << typePtr->getTypeName() << " " <<  getName();
 }
 
 VariableNode* VariableNode::at(int pos) {
@@ -94,7 +94,7 @@ ArrayAccessNode::ArrayAccessNode(ArrayNode* array, ExpressionNode* accessExpr) :
 
 void ArrayAccessNode::printNode() const {
 	auto typeptr = ExprType::makeType(arr->getType());
-	cout << "arranjo "; typeptr->getTypeNameMasculino() << getName() << "{+indice: ";
+	cout << "arranjo " << typeptr->getTypeNameMasculino() << " " << getName() << "{+indice: ";
 	index->printNode();
 	cout << "}";
 }

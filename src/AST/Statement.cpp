@@ -26,7 +26,7 @@ void DeclareVariableNode::printNode() const {
 	auto typePtr = ExprType::makeType(firstVar->getType());
 	cout << "Declaracao de ";
 	if(isArray) {
-		//TODO
+		cout <<"arranjo " << typePtr->getTypeNameMasculino() << " de tamanho " << arrSize;
 	}
 	else {
 		cout << "variavel " << typePtr->getTypeName();

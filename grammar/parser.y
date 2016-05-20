@@ -223,7 +223,7 @@ expr T_LSS expr
 |
 T_LPR expr T_RPR
 {
-    $$ = $2;
+    $$ = new AST::ParenthesisNode($2);
 }
 |
 expr T_EQ expr

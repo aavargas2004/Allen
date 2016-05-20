@@ -47,7 +47,7 @@ Type ExpressionNode::getType() const {
 void ExpressionNode::printNode() const {
 	cout << "(";
 	printExpression();
-	cout << ") ";
+	cout << ")";
 }
 
 void ExpressionNode::printExpression() const {

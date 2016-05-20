@@ -109,14 +109,14 @@ Type TypeBool::getTypeCode() const
 }
 
 std::string TypeBool::getTypeNameMasculino() const {
-	return "booleano";
+	return std::string("booleano");
 }
 
 std::string TypeDouble::getTypeNameMasculino() const {
-	return "real";
+	return std::string("real");
 }
 
 std::string TypeInteger::getTypeNameMasculino() const {
-	return "inteiro";
+	return std::string("inteiro");
 }
 

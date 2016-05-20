@@ -1,0 +1,28 @@
+int: i, j;
+real: a;
+bool: comp;
+a := 10.0 + .57 - 2.;
+
+comp := a > j;
+comp:= TRUE;
+int[10]: ar;
+int: i, j;
+i := 2;
+j := 5;
+ar[1] := i;
+ar[i] := 3;
+ar [ j - 1 ] := 0;
+i := ar[1];
+int: i;
+bool: true;
+if 10.0 > -2
+then
+i:=5;
+else i:= 3;
+end if
+true:= TRUE;
+if true then i:=0; end if
+int: i;
+real[10]: ar;
+i:=1;
+while i <= 10 do ar[i]:= 0.0; i:= i + 1; end while

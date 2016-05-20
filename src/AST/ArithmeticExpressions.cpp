@@ -13,7 +13,7 @@ using namespace std;
 using namespace AST;
 void BinaryNode::printExpression() const {
 	lhs->printNode();
-	cout << "(";
+	cout << " (";
 	printOperation();
 	auto typePtr = ExprType::makeType(getType());
 	std::cout << typePtr->getTypeName();
@@ -76,7 +76,6 @@ void UnaryNode::printExpression() const {
 	cout << "(";
 	printOperation();
 	auto typePtr = ExprType::makeType(getType());
-	std::cout << typePtr->getTypeName() << " ";
 	cout << ") ";
 	node->printNode();
 }
@@ -87,12 +86,13 @@ UnaryMinusNode::UnaryMinusNode(ExpressionNode* node) :
 }
 
 void UnaryMinusNode::printOperation() const {
-	cout << "menos unario ";
+	auto typeptr = ExprType::makeType(getType());
+	cout << "menos unario " << typeptr->getTypeNameMasculino();
 }
 
 ParenthesisNode::ParenthesisNode(ExpressionNode* expr) :
 		expression(expr) {
-
+	initialize(expression->getType());
 }
 
 void ParenthesisNode::printExpression() const {

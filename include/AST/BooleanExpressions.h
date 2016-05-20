@@ -24,6 +24,7 @@ protected:
 	virtual void printExpression() const;
 private:
 	ExpressionNode* lhs, *rhs;
+	Type comparisonType;
 };
 
 class UnaryBooleanExpressionNode: public BooleanExpressionNode {

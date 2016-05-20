@@ -26,8 +26,9 @@ BinaryBooleanExpressionNode::BinaryBooleanExpressionNode(ExpressionNode* lhs,
 	if (!typeptrleft->compatible(typeptrright.get())) {
 		throw IncompatibleTypeException(lhs->getType(), rhs->getType());
 	}
+	auto newType = typeptrleft->getNewType(typeptrright.get());
+	comparisonType = newType->getTypeCode();
 }
-
 
 UnaryBooleanExpressionNode::UnaryBooleanExpressionNode(ExpressionNode* node) :
 		node(node) {
@@ -45,7 +46,7 @@ AndBinaryNode::AndBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 	}
 }
 void AndBinaryNode::printOperation() const {
-	cout << "e booleano ";
+	cout << "e booleano";
 }
 
 OrBinaryNode::OrBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -60,7 +61,7 @@ OrBinaryNode::OrBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 }
 
 void OrBinaryNode::printOperation() const {
-	cout << "ou booleano ";
+	cout << "ou booleano";
 }
 
 GreaterThanBinaryNode::GreaterThanBinaryNode(ExpressionNode* lhs,
@@ -70,7 +71,7 @@ GreaterThanBinaryNode::GreaterThanBinaryNode(ExpressionNode* lhs,
 }
 
 void GreaterThanBinaryNode::printOperation() const {
-	cout << "maior booleano ";
+	cout << "maior booleano";
 }
 
 GreaterOrEqualThanBinaryNode::GreaterOrEqualThanBinaryNode(ExpressionNode* lhs,
@@ -80,7 +81,7 @@ GreaterOrEqualThanBinaryNode::GreaterOrEqualThanBinaryNode(ExpressionNode* lhs,
 }
 
 void GreaterOrEqualThanBinaryNode::printOperation() const {
-	cout << "maior ou igual booleano ";
+	cout << "maior ou igual booleano";
 }
 
 LessThanBinaryNode::LessThanBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -88,7 +89,7 @@ LessThanBinaryNode::LessThanBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs)
 
 }
 void LessThanBinaryNode::printOperation() const {
-	cout << "menor booleano ";
+	cout << "menor booleano";
 }
 
 LessOrEqualThanBinaryNode::LessOrEqualThanBinaryNode(ExpressionNode* lhs,
@@ -97,7 +98,7 @@ LessOrEqualThanBinaryNode::LessOrEqualThanBinaryNode(ExpressionNode* lhs,
 
 }
 void LessOrEqualThanBinaryNode::printOperation() const {
-	cout << "menor ou igual booleano ";
+	cout << "menor ou igual booleano";
 }
 
 EqualBinaryNode::EqualBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
@@ -106,7 +107,7 @@ EqualBinaryNode::EqualBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 }
 
 void EqualBinaryNode::printOperation() const {
-	cout << "igual booleano ";
+	cout << "igual booleano";
 }
 
 DifferentBinaryNode::DifferentBinaryNode(ExpressionNode* lhs,
@@ -115,7 +116,7 @@ DifferentBinaryNode::DifferentBinaryNode(ExpressionNode* lhs,
 
 }
 void DifferentBinaryNode::printOperation() const {
-	cout << "diferente booleano ";
+	cout << "diferente booleano";
 }
 
 NotUnaryNode::NotUnaryNode(ExpressionNode* node) :
@@ -126,20 +127,28 @@ NotUnaryNode::NotUnaryNode(ExpressionNode* node) :
 }
 
 void NotUnaryNode::printOperation() const {
-	cout << "nao booleano ";
+	cout << "nao booleano";
 }
 
 void BinaryBooleanExpressionNode::printExpression() const {
 	lhs->printNode();
+	if (lhs->getType() != comparisonType) {
+		auto typeptr = ExprType::makeType(comparisonType);
+		cout << " para " << typeptr->getTypeName() << " ";
+	}
 	cout << "(";
-	printExpression();
+	printOperation();
 	cout << ") ";
 	rhs->printNode();
+	if (rhs->getType() != comparisonType) {
+		auto typeptr = ExprType::makeType(comparisonType);
+		cout << " para " << typeptr->getTypeName();
+	}
 }
 
 void UnaryBooleanExpressionNode::printExpression() const {
 	cout << "(";
-	printExpression();
+	printOperation();
 	cout << ") ";
 	node->printNode();
 }
