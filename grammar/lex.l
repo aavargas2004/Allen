@@ -153,7 +153,7 @@ OR {
     return T_RBR;
 }
 . {
-    yyerror("Unknown token! %c\n", *yytext);
+    yyerror("Erro lexico: simbolo desconhecido: %c", *yytext);
 }
 
 %%
@@ -161,6 +161,7 @@ OR {
 void yyerror(const char *s, ...){
     va_list ap;
     va_start(ap, s);
-    std::fprintf(stderr, "Line %d: error: ", yylineno);
+    std::fprintf(stderr, "[Linha %d] Erro ", yylineno);
     std::vfprintf(stderr, s, ap);
+    std::fprintf(stderr, "\n");
 }

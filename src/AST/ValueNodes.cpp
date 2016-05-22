@@ -15,13 +15,12 @@
 using namespace AST;
 using namespace std;
 
-
 IntegerNode::IntegerNode(int val) :
 		value(val), ExpressionNode(Type::TINT) {
 }
 
 void IntegerNode::printNode() const {
-	cout << "valor inteiro " << value ;
+	cout << "valor inteiro " << value;
 }
 
 void RealNode::printNode() const {
@@ -53,7 +52,7 @@ void VariableNode::printNode() const {
 
 	cout << "variavel ";
 	auto typePtr = ExprType::makeType(getType());
-	cout << typePtr->getTypeName() << " " <<  getName();
+	cout << typePtr->getTypeName() << " " << getName();
 }
 
 VariableNode* VariableNode::at(int pos) {
@@ -66,13 +65,12 @@ string VariableNode::getName() const {
 
 ArrayNode::ArrayNode(const std::string& varName, Type varType,
 		unsigned int size) :
-		VariableNode(varName, varType), size(size), vars(vector<VariableNode*>(size)) {
-	for(auto& var : vars) {
+		VariableNode(varName, varType), size(size), vars(
+				vector<VariableNode*>(size)) {
+	for (auto& var : vars) {
 		var = new VariableNode(varName, varType);
 	}
 }
-
-
 
 void ArrayNode::printNode() const {
 	VariableNode::printNode();
@@ -83,18 +81,21 @@ VariableNode* ArrayNode::at(int pos) {
 	return vars[pos];
 }
 
-ArrayAccessNode::ArrayAccessNode(ArrayNode* array, ExpressionNode* accessExpr) : VariableNode(array->getName(), array->getType()), arr(array), index(accessExpr){
-	if(array->getType() == TERROR) {
+ArrayAccessNode::ArrayAccessNode(ArrayNode* array, ExpressionNode* accessExpr) :
+		VariableNode(array->getName(), array->getType()), arr(array), index(
+				accessExpr) {
+	if (array->getType() == TERROR) {
 		throw InvalidType(TERROR);
 	}
-	if(accessExpr->getType() != TINT) {
+	if (accessExpr->getType() != TINT) {
 		throw InvalidType(accessExpr->getType());
 	}
 }
 
 void ArrayAccessNode::printNode() const {
 	auto typeptr = ExprType::makeType(arr->getType());
-	cout << "arranjo " << typeptr->getTypeNameMasculino() << " " << getName() << "{+indice: ";
+	cout << "arranjo " << typeptr->getTypeNameMasculino() << " " << getName()
+			<< "{+indice: ";
 	index->printNode();
 	cout << "}";
 }
@@ -119,7 +120,6 @@ void ArrayAccessNode::set(int pos, ExpressionNode* expr) {
 	arr->set(pos, expr);
 }
 
-
 bool VariableNode::isArray() {
 	return false;
 }
@@ -131,3 +131,58 @@ bool ArrayAccessNode::isArray() {
 bool ArrayNode::isArray() {
 	return true;
 }
+
+FunctionNode::FunctionNode(Type type, std::string name,
+		std::vector<VariableNode*>* args, BlockNode* body) :
+		ExpressionNode(type), name(name), args(args), body(body) {
+
+}
+
+void FunctionNode::printNode() const {
+	auto typeptr = ExprType::makeType(getType());
+	cout << "Definicao de funcao " << typeptr->getTypeName() << ": " << name;
+	cout << endl;
+	cout << "parametros:";
+	cout << endl;
+	for (auto& pamptr : *(args)) {
+		auto pamType = ExprType::makeType(pamptr->getType());
+		cout << "Parametro " << pamType->getTypeNameMasculino() << ": "
+				<< pamptr->getName();
+		cout << endl;
+	}
+	cout << "corpo:" << endl;
+	body->printNode();
+	cout << "Fim definicao";
+
+}
+
+std::string FunctionNode::getFuncName() {
+	return name;
+}
+
+std::vector<VariableNode*>* FunctionNode::getArgs() {
+	return args;
+}
+
+unsigned int VariableNode::arrSize() const {
+	return 0;
+}
+
+unsigned int ArrayAccessNode::arrSize() const {
+	return 0;
+}
+
+unsigned int ArrayNode::arrSize() const {
+	return size;
+}
+
+FunctionCallNode::FunctionCallNode(std::string function, Type type,
+		std::vector<ExpressionNode*>* args) :
+		function(function), args(args) {
+	initialize(type);
+}
+
+void FunctionCallNode::printNode() const {
+	//TODO
+}
+

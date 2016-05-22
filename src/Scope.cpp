@@ -9,6 +9,7 @@
 #include "AST/AST.h"
 #include <string>
 #include <iostream>
+#include <vector>
 
 using namespace AST;
 using namespace std;
@@ -81,6 +82,49 @@ bool Scope::deleteScope() {
 		return true;
 	}
 	return false;
+}
+
+FunctionScope::FunctionScope() :
+		functionValMap(std::map<std::string, functionInfo>()) {
+}
+
+void FunctionScope::addToScope(const std::string& name, const AST::Type& varType,
+		std::vector<AST::VariableNode*> args) {
+	functionInfo entry;
+	entry.defined = false;
+	entry.type = varType;
+	entry.argInfo = std::vector<variableInfo>();
+	for(auto& var: args) {
+		variableInfo varInfo;
+		varInfo.isArray = var->isArray();
+		varInfo.type = var->getType();
+		varInfo.arrSize = var->arrSize();
+		entry.argInfo.push_back(varInfo);
+	}
+	functionValMap[name] = entry;
+}
+
+bool ScopeNode::searchCurrentScope(const std::string& varName, variableInfo** outputInfo) {
+	auto position = variableValMap.find(varName);
+	if(position == variableValMap.end()) {
+		return false;
+	}
+	*outputInfo = &position->second;
+	return true;
+}
+
+variableInfo* Scope::searchCurrentScope(const string& varName) {
+	variableInfo* ret = nullptr;
+	tail->searchCurrentScope(varName, &ret);
+	return ret;
+}
+
+functionInfo* FunctionScope::searchScope(const std::string& funcName) {
+	auto position = functionValMap.find(funcName);
+	if(position == functionValMap.end()) {
+		return nullptr;
+	}
+	return &position->second;
 }
 
 void Scope::addToScope(const std::string& name, const AST::Type& varType,

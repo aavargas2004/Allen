@@ -25,10 +25,10 @@ void DeclareVariableNode::printNode() const {
 	VariableNode* firstVar = (*vec)[0];
 	auto typePtr = ExprType::makeType(firstVar->getType());
 	cout << "Declaracao de ";
-	if(isArray) {
-		cout <<"arranjo " << typePtr->getTypeNameMasculino() << " de tamanho " << arrSize;
-	}
-	else {
+	if (isArray) {
+		cout << "arranjo " << typePtr->getTypeNameMasculino() << " de tamanho "
+				<< arrSize;
+	} else {
 		cout << "variavel " << typePtr->getTypeName();
 	}
 	cout << ":";
@@ -68,8 +68,9 @@ void IfNode::printNode() const {
 	cout << "Fim expressao condicional";
 }
 
-DefineVariableNode::DefineVariableNode(VariableNode* var, ExpressionNode* value) : var(var), expr(value) {
-	if(var->isArray()) {
+DefineVariableNode::DefineVariableNode(VariableNode* var, ExpressionNode* value) :
+		var(var), expr(value) {
+	if (var->isArray()) {
 		throw InvalidType(TERROR);
 	}
 }
@@ -81,13 +82,12 @@ void DefineVariableNode::printNode() const {
 	expr->printNode();
 }
 
-
-WhileNode::WhileNode(ExpressionNode* condition, BlockNode* statements) : condition(condition), statements(statements){
-	if(condition->getType() != TBOOL) {
+WhileNode::WhileNode(ExpressionNode* condition, BlockNode* statements) :
+		condition(condition), statements(statements) {
+	if (condition->getType() != TBOOL) {
 		throw InvalidType(condition->getType());
 	}
 }
-
 
 void WhileNode::printNode() const {
 	cout << "Laco" << endl;
@@ -97,4 +97,42 @@ void WhileNode::printNode() const {
 	cout << "+faca:" << endl;
 	statements->printNode();
 	cout << "Fim laco";
+}
+
+ReturnNode::ReturnNode(ExpressionNode* expr) :
+		returnExpression(expr) {
+	initialize(expr->getType());
+}
+
+void ReturnNode::findReturnStatement(std::vector<ReturnNode*>& vec) {
+	vec.push_back(this);
+}
+
+void ReturnNode::printNode() const {
+	cout << "Retorno de funcao: ";
+	returnExpression->printNode();
+}
+
+DeclareFunctionNode::DeclareFunctionNode(std::string name, Type type,
+		std::vector<VariableNode*>* args): functionName(name), args(args) {
+	initialize(type);
+}
+
+DeclareFunctionNode::DeclareFunctionNode(std::string name, Type type): functionName(name), args(nullptr) {
+	initialize(type);
+}
+
+void DeclareFunctionNode::printNode() const {
+	auto typeptr = ExprType::makeType(getType());
+	cout << "Declaracao de funcao " << typeptr->getTypeName() << ": ";
+	cout << functionName << endl;
+	cout << "+parametros:" << endl;
+	if(args) {
+		for(auto& val: *(args)) {
+			auto argTypePtr = ExprType::makeType(val->getType());
+			cout << "Parametro " << argTypePtr->getTypeNameMasculino() << ": " << val->getName();
+			cout << endl;
+		}
+	}
+	cout << "Fim declaracao";
 }

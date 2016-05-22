@@ -50,7 +50,21 @@ void ExpressionNode::printNode() const {
 	cout << ")";
 }
 
+std::string ExpressionNode::getName() const {
+	return "";
+}
+
 void ExpressionNode::printExpression() const {
 	//EMPTY
 }
 
+
+void AbstractNode::findReturnStatement(std::vector<ReturnNode*>& vec) {
+
+}
+
+void BlockNode::findReturnStatement(std::vector<ReturnNode*>& vec) {
+	for(auto& node : nodes) {
+		node->findReturnStatement(vec);
+	}
+}

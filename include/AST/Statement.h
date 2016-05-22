@@ -56,6 +56,25 @@ private:
 	BlockNode* statements;
 };
 
+class ReturnNode : public ExpressionNode {
+public:
+	ReturnNode(ExpressionNode* expr);
+	virtual void printNode() const;
+	virtual void findReturnStatement(std::vector<ReturnNode*>& vec);
+private:
+	ExpressionNode* returnExpression;
+};
+
+class DeclareFunctionNode : public ExpressionNode {
+public:
+	DeclareFunctionNode(std::string name, Type type, std::vector<VariableNode*>* args);
+	DeclareFunctionNode(std::string name, Type type);
+	virtual void printNode() const;
+private:
+	std::string functionName;
+	std::vector<VariableNode*>* args;
+};
+
 }
 
 #endif /* STATEMENT_H_ */

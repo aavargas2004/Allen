@@ -23,7 +23,9 @@ public:
 	virtual bool isArray();
 	void setArray();
 	void set(ExpressionNode* expr);
-	static VariableNode* makeVariable(const std::string& name, const Type& type);
+	virtual unsigned int arrSize() const;
+	static VariableNode* makeVariable(const std::string& name,
+			const Type& type);
 private:
 	std::string name;
 	bool array = false;
@@ -53,37 +55,62 @@ private:
 	bool value;
 };
 
-//TODO
-//Implement this shit
-class ArrayNode : public VariableNode {
+class ArrayNode: public VariableNode {
 public:
 	ArrayNode(const std::string& varName, Type varType, unsigned int size);
 	virtual VariableNode* at(int pos);
 	virtual void printNode() const;
 	virtual void set(int pos, ExpressionNode* expr);
 	virtual bool isArray();
+	virtual unsigned int arrSize() const;
 private:
 	unsigned int size;
 	std::vector<VariableNode*> vars;
 };
 
-//TODO
-//Implement this shit
-class ArrayAccessNode : public VariableNode {
+class ArrayAccessNode: public VariableNode {
 public:
 	ArrayAccessNode(ArrayNode* array, ExpressionNode* accessExpr);
 	virtual void printNode() const;
 	virtual VariableNode* at(int pos);
 	virtual void set(int pos, ExpressionNode* expr);
 	virtual bool isArray();
+	virtual unsigned int arrSize() const;
 private:
 	ArrayNode* arr;
 	ExpressionNode* index;
 };
 
+struct FunctionBody {
+	FunctionBody() {
+		nodeBlock = new BlockNode();
+		returnStatements = new std::vector<ExpressionNode*>();
+	}
+	BlockNode* nodeBlock;
+	std::vector<ExpressionNode*>* returnStatements;
+};
+
+class FunctionNode : public ExpressionNode {
+public:
+	FunctionNode(Type type, std::string name, std::vector<VariableNode*>* args, BlockNode* body);
+	virtual void printNode() const;
+	std::string getFuncName();
+	std::vector<VariableNode*>* getArgs();
+private:
+	std::string name;
+	std::vector<VariableNode*>* args;
+	BlockNode* body;
+};
+
+class FunctionCallNode : public ExpressionNode {
+public:
+	FunctionCallNode(std::string function, Type type, std::vector<ExpressionNode*>* args);
+	virtual void printNode() const;
+private:
+	std::string function;
+	std::vector<ExpressionNode*>* args;
+};
 
 }
-
-
 
 #endif /* VALUENODES_H_ */
