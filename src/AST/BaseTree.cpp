@@ -65,6 +65,7 @@ void AbstractNode::findReturnStatement(std::vector<ReturnNode*>& vec) {
 
 void BlockNode::findReturnStatement(std::vector<ReturnNode*>& vec) {
 	for(auto& node : nodes) {
-		node->findReturnStatement(vec);
+		if(node)
+			node->findReturnStatement(vec);
 	}
 }

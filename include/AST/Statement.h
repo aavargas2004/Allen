@@ -32,6 +32,7 @@ public:
 			BlockNode* elseNode);
 	IfNode(ExpressionNode* condition, BlockNode* then);
 	virtual void printNode() const;
+	virtual void findReturnStatement(std::vector<ReturnNode*>& vec);
 private:
 	ExpressionNode* condition;
 	BlockNode* thenNode;
@@ -51,6 +52,7 @@ class WhileNode : public AbstractNode {
 public:
 	WhileNode(ExpressionNode* condition, BlockNode* statements);
 	virtual void printNode() const;
+	virtual void findReturnStatement(std::vector<ReturnNode*>& vec);
 private:
 	ExpressionNode* condition;
 	BlockNode* statements;

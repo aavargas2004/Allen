@@ -22,9 +22,10 @@ public:
 protected:
 	virtual void printOperation() const = 0;
 	virtual void printExpression() const;
+	Type comparisonType;
 private:
 	ExpressionNode* lhs, *rhs;
-	Type comparisonType;
+
 };
 
 class UnaryBooleanExpressionNode: public BooleanExpressionNode {

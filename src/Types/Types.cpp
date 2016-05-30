@@ -7,7 +7,8 @@ using std::map;
 using std::string;
 using namespace AST;
 
-std::map<Type, std::map<Type, Type>> ExprType::typeMap = std::map<Type, std::map<Type, Type>>();
+std::map<Type, std::map<Type, Type>> ExprType::typeMap = std::map<Type,
+		std::map<Type, Type>>();
 
 ExprType::~ExprType() {
 
@@ -25,87 +26,70 @@ string TypeBool::getTypeName() const {
 	return string("booleana");
 }
 
-type_ptr ExprType::makeType(Type typeCode) 
-{
-    type_ptr ret;    
-    switch(typeCode) 
-    {
-        case TINT : 
-        {
-            ret = type_ptr(new TypeInteger());
-            break;
-        }
-        case TREAL :
-        {
-            ret = type_ptr(new TypeDouble());
-            break;
-        }
-        case TBOOL :
-        {
-            ret = type_ptr(new TypeBool());
-            break;
-        }
-        default :
-        {
-            throw InvalidType(typeCode);
-        }
-    }
-    return ret;
+type_ptr ExprType::makeType(Type typeCode) {
+	type_ptr ret;
+	switch (typeCode) {
+	case TINT: {
+		ret = type_ptr(new TypeInteger());
+		break;
+	}
+	case TREAL: {
+		ret = type_ptr(new TypeDouble());
+		break;
+	}
+	case TBOOL: {
+		ret = type_ptr(new TypeBool());
+		break;
+	}
+	default: {
+		ret = type_ptr(new TypeError());
+	}
+	}
+	return ret;
 }
 
-
-const map<Type, map<Type, Type>>& ExprType::getTypeMap()
-{
-    struct init
-    {
-        init()
-        {
-            typeMap[TINT][TREAL] = TREAL;
-            typeMap[TREAL][TINT] = TREAL; 
-        }
-    };
-    static init initialize;
-    return typeMap;
+const map<Type, map<Type, Type>>& ExprType::getTypeMap() {
+	struct init {
+		init() {
+			typeMap[TINT][TREAL] = TREAL;
+			typeMap[TREAL][TINT] = TREAL;
+		}
+	};
+	static init initialize;
+	return typeMap;
 }
 
-
-bool ExprType::compatible(const ExprType * other) const
-{
-	if(getTypeCode() == other->getTypeCode()) {
+bool ExprType::compatible(const ExprType * other) const {
+	if (getTypeCode() == other->getTypeCode()) {
 		return true;
 	}
-    auto map = ExprType::getTypeMap();
-    return map[getTypeCode()].find(other->getTypeCode()) != map[getTypeCode()].end();
+	auto map = ExprType::getTypeMap();
+	return map[getTypeCode()].find(other->getTypeCode())
+			!= map[getTypeCode()].end();
 }
 
-Type TypeInteger::getTypeCode() const
-{
-    return TINT;
-}
- 
-type_ptr ExprType::getNewType(const ExprType* other) const
-{
-    if(getTypeCode() == other->getTypeCode())
-    {
-        return ExprType::makeType(getTypeCode());
-    }
-    if(!compatible(other))
-    {
-        throw IncompatibleTypeException(getTypeCode(), other->getTypeCode());
-    }
-    auto mapVal = ExprType::getTypeMap();
-    Type tp = mapVal[this->getTypeCode()][other->getTypeCode()];
-    return ExprType::makeType(tp);
+Type TypeInteger::getTypeCode() const {
+	return TINT;
 }
 
-Type TypeDouble::getTypeCode() const
-{
-    return TREAL;
+type_ptr ExprType::getNewType(const ExprType* other) const {
+	if (getTypeCode() == other->getTypeCode()) {
+		return ExprType::makeType(getTypeCode());
+	}
+	if (!compatible(other)) {
+		throw IncompatibleTypeException(getTypeCode(), other->getTypeCode());
+	}
+	auto mapVal = ExprType::getTypeMap();
+	Type tp = mapVal[this->getTypeCode()][other->getTypeCode()];
+	return ExprType::makeType(tp);
 }
 
-Type TypeBool::getTypeCode() const
-{
-    return TBOOL;
+Type TypeDouble::getTypeCode() const {
+	return TREAL;
+}
+
+Type TypeBool::getTypeCode() const {
+	return TBOOL;
 }
 
 std::string TypeBool::getTypeNameMasculino() const {
@@ -120,3 +104,14 @@ std::string TypeInteger::getTypeNameMasculino() const {
 	return std::string("inteiro");
 }
 
+Type TypeError::getTypeCode() const {
+	return TERROR;
+}
+
+std::string TypeError::getTypeName() const {
+	return std::string("desconhecida");
+}
+
+std::string TypeError::getTypeNameMasculino() const {
+	return std::string("desconhecido");
+}

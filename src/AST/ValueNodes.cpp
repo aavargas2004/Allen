@@ -73,7 +73,9 @@ ArrayNode::ArrayNode(const std::string& varName, Type varType,
 }
 
 void ArrayNode::printNode() const {
-	VariableNode::printNode();
+	cout << "arranjo ";
+	auto typePtr = ExprType::makeType(getType());
+	cout << typePtr->getTypeNameMasculino() << " " << getName();
 	cout << "[" << size << "]";
 }
 
@@ -84,12 +86,6 @@ VariableNode* ArrayNode::at(int pos) {
 ArrayAccessNode::ArrayAccessNode(ArrayNode* array, ExpressionNode* accessExpr) :
 		VariableNode(array->getName(), array->getType()), arr(array), index(
 				accessExpr) {
-	if (array->getType() == TERROR) {
-		throw InvalidType(TERROR);
-	}
-	if (accessExpr->getType() != TINT) {
-		throw InvalidType(accessExpr->getType());
-	}
 }
 
 void ArrayAccessNode::printNode() const {
@@ -183,6 +179,15 @@ FunctionCallNode::FunctionCallNode(std::string function, Type type,
 }
 
 void FunctionCallNode::printNode() const {
-	//TODO
+	cout << "chamada de funcao ";
+	auto typePtr = ExprType::makeType(getType());
+	cout << typePtr->getTypeName() << " " << function << " {+parametros: ";
+	std::string prefix = "";
+	for(auto& node : *args) {
+		cout << prefix;
+		node->printNode();
+		prefix = ", ";
+	}
+	cout << "}";
 }
 

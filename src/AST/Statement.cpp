@@ -22,6 +22,9 @@ DeclareVariableNode::DeclareVariableNode(vector<VariableNode*>* declaredVar,
 
 }
 void DeclareVariableNode::printNode() const {
+	if(vec->empty()) {
+		return;
+	}
 	VariableNode* firstVar = (*vec)[0];
 	auto typePtr = ExprType::makeType(firstVar->getType());
 	cout << "Declaracao de ";
@@ -135,4 +138,14 @@ void DeclareFunctionNode::printNode() const {
 		}
 	}
 	cout << "Fim declaracao";
+}
+
+void IfNode::findReturnStatement(std::vector<ReturnNode*>& vec) {
+	this->thenNode->findReturnStatement(vec);
+	if(elseNode)
+		this->elseNode->findReturnStatement(vec);
+}
+
+void WhileNode::findReturnStatement(std::vector<ReturnNode*>& vec) {
+	this->statements->findReturnStatement(vec);
 }

@@ -11,6 +11,7 @@ AST::BlockNode* root;
 AST::Scope* scope = new AST::Scope();
 AST::FunctionScope* funcScope = new AST::FunctionScope();
 bool insideFunc = false;
+int scopeCount = 0;
 %}
 
 
@@ -47,7 +48,7 @@ bool insideFunc = false;
 %type<abstractNode> statement valattr createscope destroyscope declfunc returnstat
 %type<declvarNode> declarevar
 %type<var_name> T_VARNAME
-%type<exprNode> expr functioncall functioncallstat
+%type<exprNode> expr functioncall functioncallstat arglistexpr
 %type<val_int> T_INT
 %type<val_float> T_FLOAT
 %type<boolNode> bool
@@ -69,6 +70,13 @@ head:
 statements
 {
     root = $1;
+    for(auto beg = funcScope->begin(), end = funcScope->end(); beg != end; ++beg) {
+        auto funcTable = beg->second;
+        auto funcName = beg->first;
+        if(!funcTable.defined) {
+            yyerror("semantico: funcao %s declarada mas nunca definida.", funcName.c_str());
+        }    
+    }
 }
 ;
 
@@ -146,15 +154,18 @@ functioncall T_SMC
 functioncall:
 T_VARNAME T_LPR callarglist T_RPR
 {
+    $$ = nullptr;
     auto funcInfo = funcScope->searchScope(std::string($1));
     if(funcInfo) {
         if(!funcInfo->defined) {
-            std::cerr << "Erro. Funcao declarada mas nao definida " << std::endl;
-            std::exit(-1);
+            yyerror("semantico: funcao nao inicializada.");
+            if($$ == nullptr) {
+                $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3);      
+            }
         }
         if($3->size() != funcInfo->argInfo.size()) {
-            std::cerr << "Erro. Tentando chamar funcao de "  << funcInfo->argInfo.size() << " argumentos, mas passou somente " << $3->size() << std::endl;
-            std::exit(-1);
+            yyerror("semantico: funcao %s espera %i parametros mas recebeu %d.", $1, funcInfo->argInfo.size(), $3->size());
+            $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3); 
         }
         else {
             auto end = $3->end();
@@ -163,150 +174,393 @@ T_VARNAME T_LPR callarglist T_RPR
                 auto requiredTypePtr = AST::ExprType::makeType((*indexBeg).type);
                 auto actualTypePtr = AST::ExprType::makeType((*beg)->getType());
                 if(!requiredTypePtr->compatible(actualTypePtr.get())) {
-                    std::cerr << "Argumento inválido. Tipo não bate" << std::endl;
-                    std::exit(-1);                
+                    yyerror("semantico: parametro espera %s mas recebeu %s.", requiredTypePtr->getTypeNameMasculino().c_str(), actualTypePtr->getTypeNameMasculino().c_str());
+                    if($$ == nullptr)
+                        $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3);
                 }
                 if((*beg)->getName() != "") {
                     auto var = scope->searchScope((*beg)->getName());
                     if((*indexBeg).isArray) {
                         if(var->isArray) {
-                            if((*indexBeg).arrSize != var->arrSize) {
-                                std::cerr << "Tamanho array não bate." << std::endl;
-                                std::exit(-1);
+                            if((*indexBeg).arrSize > var->arrSize) {
+                                yyerror("semantico: arranjo %s possui tamanho menor do que necessario.", (*beg)->getName().c_str());
+                                if($$ == nullptr) {
+                                    $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3);      
+                                }
                             }
                         }
                         else {
-                            std::cerr << "Esperado array." << std::endl;
-                            std::exit(-1);
+                            yyerror("semantico: variavel %s com uso como arranjo", (*beg)->getName().c_str());
+                            if($$ == nullptr) {
+                                $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3);      
+                            }
                         }
                     }
                     else {
                         if(var->isArray) {
-                            std::cerr << "Esperado expressao. Passado array." << std::endl;
-                            std::exit(-1);
+                            yyerror("semantico: arranjo %s com uso como variavel", (*beg)->getName().c_str());
+                            if($$ == nullptr) {
+                                $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3);      
+                            }
                         }
                     }
                 }
                 else {
                     if((*indexBeg).isArray) {
-                        std::cerr << "Esperado array." << std::endl;
-                        std::exit(-1);
+                        yyerror("semantico: expressao usada como arranjo.");
+                        if($$ == nullptr) {
+                            $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3);      
+                        }
                     }
                 }
             }
-            $$ = new AST::FunctionCallNode(std::string($1),funcInfo->type, $3);
+            if($$ == nullptr)
+                $$ = new AST::FunctionCallNode(std::string($1),funcInfo->type, $3);
             
         }
     }
     else {
-        std::cerr << "Erro. Funcao nao declarada." << std::endl;
-        std::exit(-1);
+        yyerror("semantico: funcao sem declaracao");
+        if($$ == nullptr) {
+            $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3);      
+        }
+    }
+}
+|
+T_VARNAME T_LPR T_RPR
+{
+    $$ = nullptr;
+    auto funcInfo = funcScope->searchScope(std::string($1));
+    if(funcInfo) {
+        if(!funcInfo->defined) {
+            yyerror("semantico: funcao nao inicializada.");
+            if($$ == nullptr) {
+                $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, new std::vector<AST::ExpressionNode*>());      
+            }
+        }
+        if(funcInfo->argInfo.size()) {
+            yyerror("semantico: funcao %s espera %i parametros mas recebeu %d.", $1, funcInfo->argInfo.size(), 0);
+            
+            $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, new std::vector<AST::ExpressionNode*>());
+        }
+        if($$ == nullptr) {
+            $$ = new AST::FunctionCallNode(std::string($1),funcInfo->type, new std::vector<AST::ExpressionNode*>());
+        }
+    }
+    else {
+        yyerror("semantico: funcao sem declaracao");
+        if($$ == nullptr) {
+            $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, new std::vector<AST::ExpressionNode*>());           
+        }
     }
 }
 ;
 
 callarglist:
-callarglist T_COM expr
+callarglist T_COM arglistexpr
 {
     $$ = $1;
     $$->push_back($3);
 }
 |
-expr
+arglistexpr
 {
     $$ = new std::vector<AST::ExpressionNode*>();
     $$->push_back($1);
 }
 ;
 
+arglistexpr:
+arglistexpr T_MINUS arglistexpr
+{
+    $$ = new AST::MinusBinaryNode($1, $3);
+}
+|
+arglistexpr T_TIMES arglistexpr
+{
+    $$ = new AST::MultiplicationBinaryNode($1, $3);
+}
+|
+arglistexpr T_DIV arglistexpr
+{
+    $$ = new AST::DivisionBinaryNode($1, $3);
+}
+|
+arglistexpr T_PLUS arglistexpr
+{
+    $$ = new AST::PlusBinaryNode($1, $3);
+}
+|
+arglistexpr T_GRT arglistexpr
+{
+    $$ = new AST::GreaterThanBinaryNode($1, $3);
+}
+|
+arglistexpr T_LSS arglistexpr 
+{
+    $$ = new AST::LessThanBinaryNode($1, $3);
+}
+|
+T_LPR arglistexpr T_RPR
+{
+    $$ = new AST::ParenthesisNode($2);
+}
+|
+arglistexpr T_EQ arglistexpr
+{
+    $$ = new AST::EqualBinaryNode($1, $3);
+}
+| 
+arglistexpr T_DIF arglistexpr
+{
+    $$ = new AST::DifferentBinaryNode($1, $3);
+}
+|
+arglistexpr T_GRTEQ arglistexpr
+{
+    $$ = new AST::GreaterOrEqualThanBinaryNode($1, $3);
+}
+|
+arglistexpr T_LSSEQ arglistexpr
+{
+    $$ = new AST::LessOrEqualThanBinaryNode($1, $3);
+}
+|
+arglistexpr T_AND arglistexpr
+{
+    $$ = new AST::AndBinaryNode($1, $3);
+}
+|
+arglistexpr T_OR arglistexpr
+{
+    $$ = new AST::OrBinaryNode($1, $3);
+}
+|
+T_NOT arglistexpr
+{
+    $$ = new AST::NotUnaryNode($2);
+}
+|
+T_VARNAME
+{
+    decltype(scope->searchScope(std::string($1))) variableSymbol;
+    if(!(variableSymbol = scope->searchScope(std::string($1)))) {
+        yyerror("semantico: variavel %s sem declaracao", $1);
+        $$ = new AST::VariableNode(std::string($1), AST::TERROR);
+    }
+    else if(!variableSymbol->defined && !variableSymbol->isArray){
+        yyerror("semantico: variavel %s nao inicializada", $1);
+        $$ = new AST::VariableNode(std::string($1), AST::TERROR);
+    }
+    else {
+        if(!variableSymbol->isArray) {
+            $$ = new AST::VariableNode(std::string($1), variableSymbol->type);
+        }
+        else {
+            $$ = new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->arrSize);
+        }
+    }
+}
+|
+functioncall
+{
+    $$ = $1;
+}
+|
+T_VARNAME T_LBR expr T_RBR
+{
+    auto variableSymbol = scope->searchScope(std::string($1));
+    if(!variableSymbol) {
+        yyerror("semantico: arranjo %s sem declaracao", $1);
+        $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3);
+    }
+    else if (!variableSymbol->isArray) {
+        yyerror("semantico: variavel %s com uso como arranjo", $1);
+        $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3);
+    }
+    else {
+        $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->arrSize), $3);
+    }
+}
+|
+T_INT
+{
+    $$ = new AST::IntegerNode($1);
+}
+| 
+T_MINUS T_INT %prec UNARY_MINUS
+{
+    $$ = new AST::UnaryMinusNode(new AST::IntegerNode($2));
+}
+| 
+T_MINUS T_VARNAME %prec UNARY_MINUS
+{
+    //Add support to unary minus operation on variables.
+      decltype(scope->searchScope(std::string($2))) variableSymbol;
+    if(!(variableSymbol = scope->searchScope(std::string($2)))) {
+        yyerror("semantico: variavel %s sem declaracao", $2);
+        $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
+    }
+    else if(!variableSymbol->defined){
+        yyerror("semantico: variavel %s nao inicializada", $2);
+        $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
+    }
+    else if(variableSymbol->isArray) {
+        yyerror("semantico: arranjo %s com uso como variavel.", $2);
+        $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
+    }
+    else {
+        $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), variableSymbol->type));
+    }
+}
+|
+T_MINUS T_VARNAME T_LBR expr T_RBR
+{
+  decltype(scope->searchScope(std::string($2))) variableSymbol;
+    if(!(variableSymbol = scope->searchScope(std::string($2)))) {
+        yyerror("semantico: arranjo %s sem declaracao", $2);
+        $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), AST::TERROR, variableSymbol->arrSize), $4));
+    }
+    else if(!variableSymbol->isArray) {
+        yyerror("semantico: variavel %s com uso como arranjo.", $2);
+        $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), AST::TERROR, variableSymbol->arrSize), $4));
+    }
+    else {
+        $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), variableSymbol->type, variableSymbol->arrSize), $4));
+    }
+}
+|
+T_MINUS T_FLOAT %prec UNARY_MINUS
+{
+    $$ = new AST::UnaryMinusNode(new AST::RealNode($2));
+}
+|
+T_FLOAT
+{
+    $$ = new AST::RealNode($1);
+}
+|
+bool
+{
+    $$ = $1;
+}
+;
+
 declfunc:
 T_DECL T_FUN tipo_base T_DECLVAR T_VARNAME createscope T_LPR arglist T_RPR destroyscope T_SMC
 {
-    if(funcScope->searchScope(std::string($5))) {
-        std::cerr << "Erro. Redeclaracao de funcao." << std::endl;
-        std::exit(-1);
+    if(!scopeCount) {
+        if(funcScope->searchScope(std::string($5))) {
+            yyerror("semantico: funcao %s sofrendo redeclaracao.", $5);
+            $$ = new AST::DeclareFunctionNode(std::string($5), AST::TERROR, $8);
+        }
+        else {
+            funcScope->addToScope(std::string($5), $3, *($8));
+        }
+        $$ = new AST::DeclareFunctionNode(std::string($5), $3, $8);
     }
     else {
-        funcScope->addToScope(std::string($5), $3, *($8));
+        yyerror("semantico: funcao declarada fora do escopo global.");
+        $$ = new AST::DeclareFunctionNode(std::string($5), AST::TERROR, $8);
     }
-    $$ = new AST::DeclareFunctionNode(std::string($5), $3, $8);
 }
 |
 T_DECL T_FUN tipo_base T_DECLVAR T_VARNAME createscope T_LPR T_RPR destroyscope T_SMC
 {
-    if(funcScope->searchScope(std::string($5))) {
-        std::cerr << "Erro. Redeclaracao de funcao." << std::endl;
-        std::exit(-1);
+    if(!scopeCount) {
+        if(funcScope->searchScope(std::string($5))) {
+            yyerror("semantico: funcao %s sofrendo redeclaracao.", $5);
+            $$ = new AST::DeclareFunctionNode(std::string($5), AST::TERROR);
+        }
+        else {
+            funcScope->addToScope(std::string($5), $3, std::vector<AST::VariableNode*>());
+        }
+        $$ = new AST::DeclareFunctionNode(std::string($5), $3);
     }
     else {
-        funcScope->addToScope(std::string($5), $3, std::vector<AST::VariableNode*>());
+        yyerror("semantico: funcao declarada fora do escopo global.");
+        $$ = new AST::DeclareFunctionNode(std::string($5), AST::TERROR);
     }
-    $$ = new AST::DeclareFunctionNode(std::string($5), $3);
 }
 ;
 
 funct:
 T_DEF T_FUN tipo_base T_DECLVAR T_VARNAME enterfunc createscope T_LPR arglist T_RPR funcbody destroyscope leavefunc T_END T_DEF
 {
-    decltype(funcScope->searchScope(std::string($5))) funcSymbol;    
-    if(!(funcSymbol = funcScope->searchScope(std::string($5)))) {
-        funcScope->addToScope(std::string($5), $3, *($9));
-        funcSymbol = funcScope->searchScope(std::string($5));
+    if(!scopeCount) {
+        decltype(funcScope->searchScope(std::string($5))) funcSymbol;    
+        if(!(funcSymbol = funcScope->searchScope(std::string($5)))) {
+            funcScope->addToScope(std::string($5), $3, *($9));
+            funcSymbol = funcScope->searchScope(std::string($5));
+        }
+        else {
+            if(funcSymbol->defined) {
+                yyerror("semantico: funcao %s sofrendo redefinicao.", $5);
+                $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);
+            }
+        }
+        funcSymbol->defined = true;
+        auto typeptr = AST::ExprType::makeType($3);
+        std::vector<AST::ReturnNode*> returnVec;
+        $11->findReturnStatement(returnVec);
+        if(returnVec.empty()) {
+            std::cerr << "Erro. Funcao nao tem retorno" << std::endl;
+            std::exit(-1);
+        }
+    
+        for(auto& retExpression : returnVec) {
+            auto retExpressionType = AST::ExprType::makeType(retExpression->getType());
+            if(!typeptr->compatible(retExpressionType.get())) {
+                std::cerr << "Erro. Retorno de funcao nao bate com tipo." << std::endl;
+                std::exit(-1);
+            }
+        }
+        if(!$$)
+            $$ = new AST::FunctionNode($3, std::string($5), $9, $11);
     }
     else {
-        if(funcSymbol->defined) {
-            std::cerr << "Erro. Redefinicao de funcao." << std::endl;
-            std::exit(-1);
-        }
+        yyerror("semantico: funcao definida fora do escopo global.");
+        $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);
     }
-    funcSymbol->defined = true;
-    auto typeptr = AST::ExprType::makeType($3);
-    std::vector<AST::ReturnNode*> returnVec;
-    $11->findReturnStatement(returnVec);
-    if(returnVec.empty()) {
-        std::cerr << "Erro. Funcao nao tem retorno" << std::endl;
-        std::exit(-1);
-    }
-    
-    for(auto& retExpression : returnVec) {
-        auto retExpressionType = AST::ExprType::makeType(retExpression->getType());
-        if(!typeptr->compatible(retExpressionType.get())) {
-            std::cerr << "Erro. Retorno de funcao nao bate com tipo." << std::endl;
-            std::exit(-1);
-        }
-    }
-    $$ = new AST::FunctionNode($3, std::string($5), $9, $11);
 }
 |
 T_DEF T_FUN tipo_base T_DECLVAR T_VARNAME enterfunc createscope T_LPR T_RPR funcbody destroyscope leavefunc T_END T_DEF
 {
-    decltype(funcScope->searchScope(std::string($5))) funcSymbol;    
-    if(!(funcSymbol = funcScope->searchScope(std::string($5)))) {
-        funcScope->addToScope(std::string($5), $3,  std::vector<AST::VariableNode*>());
-        funcSymbol = funcScope->searchScope(std::string($5));
-    }
-    else {
-        if(funcSymbol->defined) {
-            std::cerr << "Erro. Redefinicao de funcao." << std::endl;
+    if(!scopeCount) {
+        decltype(funcScope->searchScope(std::string($5))) funcSymbol;    
+        if(!(funcSymbol = funcScope->searchScope(std::string($5)))) {
+            funcScope->addToScope(std::string($5), $3,  std::vector<AST::VariableNode*>());
+            funcSymbol = funcScope->searchScope(std::string($5));
+        }
+        else {
+            if(funcSymbol->defined) {
+                yyerror("semantico: funcao %s sofrendo redefinicao.", $5);
+                $$ = new AST::FunctionNode(AST::TERROR, std::string($5), new std::vector<AST::VariableNode*>(), $10);
+            }
+            
+        }
+        funcSymbol->defined = true;
+        auto typeptr = AST::ExprType::makeType($3);
+        std::vector<AST::ReturnNode*> returnVec;
+        $10->findReturnStatement(returnVec);
+        if(returnVec.empty()) {
+            std::cerr << "Erro. Funcao nao tem retorno" << std::endl;
             std::exit(-1);
         }
-    }
-    funcSymbol->defined = true;
-    auto typeptr = AST::ExprType::makeType($3);
-    std::vector<AST::ReturnNode*> returnVec;
-    $10->findReturnStatement(returnVec);
-    if(returnVec.empty()) {
-        std::cerr << "Erro. Funcao nao tem retorno" << std::endl;
-        std::exit(-1);
-    }
-    for(auto& retExpression : returnVec) {
-        auto retExpressionType = AST::ExprType::makeType(retExpression->getType());
-        if(!typeptr->compatible(retExpressionType.get())) {
-            std::cerr << "Erro. Retorno de funcao nao bate com tipo." << std::endl;
-            std::exit(-1);       
+        for(auto& retExpression : returnVec) {
+            auto retExpressionType = AST::ExprType::makeType(retExpression->getType());
+            if(!typeptr->compatible(retExpressionType.get())) {
+                std::cerr << "Erro. Retorno de funcao nao bate com tipo." << std::endl;
+                std::exit(-1);       
+            }
         }
+        if(!$$)
+            $$ = new AST::FunctionNode($3, std::string($5), new std::vector<AST::VariableNode*>(), $10);
     }
-    $$ = new AST::FunctionNode($3, std::string($5), new std::vector<AST::VariableNode*>(), $10);
+    else {
+        yyerror("semantico: funcao definida fora do escopo global.");
+        $$ = new AST::FunctionNode(AST::TERROR, std::string($5), new std::vector<AST::VariableNode*>(), $10);
+    }
 }
 ;
 
@@ -398,67 +652,72 @@ T_IF expr T_THEN createscope statements destroyscope T_ELSE createscope statemen
 valattr:
 T_VARNAME T_ASSIGN expr T_SMC
 {
-    decltype(scope->searchScope(std::string($1))) variableSymbol;
-    if((variableSymbol = scope->searchScope(std::string($1))))
-    {
-        if(variableSymbol->isArray) {
-            std::cerr << "Tentando atribuir valor a array." << std::endl;
-            std::exit(-1);
-        }
-        auto typeExpr = AST::ExprType::makeType($3->getType());
-        auto typeVarSymbol = AST::ExprType::makeType(variableSymbol->type);
-        if(!(typeVarSymbol->compatible(typeExpr.get()))) 
-        {
-            std::cerr << "Incompatible type: " << typeExpr->getTypeName() << " " << 
-                typeVarSymbol->getTypeName() << std::endl;
-            std::exit(-1);
-        }
-        else 
-        {
-            $$ = new AST::DefineVariableNode(new AST::VariableNode(std::string($1), variableSymbol->type), $3);
-            variableSymbol->defined = true;
-            //Gerar código de atribuição variável 
-        }
+    if(funcScope->searchScope(std::string($1))) {
+        yyerror("semantico: funcao %s com uso como variavel.", $1);
+        $$ = new AST::DefineVariableNode(new AST::VariableNode(std::string($1), AST::TERROR), $3);
     }
-    else
-    {
-        std::cerr << "Variável não declarada " << std::string($1) << std::endl;
-        std::exit(-1);
+    else{
+        decltype(scope->searchScope(std::string($1))) variableSymbol;
+        if((variableSymbol = scope->searchScope(std::string($1))))
+        {
+            if(variableSymbol->isArray) {
+                yyerror("semantico: arranjo %s com uso como variavel.", $1);
+                $$ = new AST::DefineVariableNode(new AST::VariableNode(std::string($1), AST::TERROR), $3);
+            }
+            auto typeExpr = AST::ExprType::makeType($3->getType());
+            auto typeVarSymbol = AST::ExprType::makeType(variableSymbol->type);
+            if(!(typeVarSymbol->compatible(typeExpr.get()))) 
+            {
+                $$ = new AST::DefineVariableNode(new AST::VariableNode(std::string($1), AST::TERROR), $3);
+                variableSymbol->defined = true;
+            }
+            else 
+            {
+                $$ = new AST::DefineVariableNode(new AST::VariableNode(std::string($1), variableSymbol->type), $3);
+                variableSymbol->defined = true;
+            }
+        }
+        else
+        {
+            yyerror("semantico: variavel %s sem declaracao", $1);
+            $$ = new AST::DefineVariableNode(new AST::VariableNode(std::string($1), AST::TERROR), $3);
+        }
     }
 }
 |
 T_VARNAME T_LBR expr T_RBR T_ASSIGN expr T_SMC
 {
-    auto variableSymbol = scope->searchScope(std::string($1));
-    if(variableSymbol)
-    {
-        if(!variableSymbol->isArray) {
-            std::cerr << "Tentando atribuir índice de variável não array." << std::endl;
-            std::exit(-1);
-        }
-        auto typeExpr = AST::ExprType::makeType($6->getType());
-        auto typeVarSymbol = AST::ExprType::makeType(variableSymbol->type);
-        if(!(typeVarSymbol->compatible(typeExpr.get()))) 
-        {
-            std::cerr << "Incompatible type: " << typeExpr->getTypeName() << " " << 
-                typeVarSymbol->getTypeName() << std::endl;
-            std::exit(-1);
-        }
-        if($3->getType() != AST::Type::TINT) {
-            std::cerr << "Tentando acessar índice não inteiro no array. Burro" << std::endl;
-            std::exit(-1);
-        }
-        else 
-        {
-            $$ = new AST::DefineVariableNode(new AST::ArrayAccessNode(new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->arrSize), $3 ),$6);
-            variableSymbol->defined = true;
-            //Gerar código de atribuição variável 
-        }
+    if(funcScope->searchScope(std::string($1))) {
+        yyerror("semantico: funcao %s com uso como arranjo.", $1);
+        $$ = new AST::DefineVariableNode(new AST::ArrayAccessNode(new AST::ArrayNode(std::string($1), AST::TERROR, 0), $3 ),$6);
     }
-    else
-    {
-        yyerror("semantico: variavel %s sem declaracao", $1);
-        $$ = new AST::DefineVariableNode(new AST::ArrayAccessNode(new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3 ),$6);
+    else{
+        auto variableSymbol = scope->searchScope(std::string($1));
+        if(variableSymbol)
+        {
+        if(!variableSymbol->isArray) {
+                yyerror("semantico: variavel %s com uso como arranjo", $1);
+                $$ = new AST::DefineVariableNode(new AST::ArrayAccessNode(new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3 ),$6);
+            }
+            auto typeExpr = AST::ExprType::makeType($6->getType());
+            auto typeVarSymbol = AST::ExprType::makeType(variableSymbol->type);
+            if($3->getType() != AST::Type::TINT) {
+                auto typeIndex = AST::ExprType::makeType($3->getType());
+                std::string wrongTypeName = typeIndex->getTypeNameMasculino();
+                yyerror("semantico: indice de tipo %s.", wrongTypeName.c_str()); 
+                $$ = new AST::DefineVariableNode(new AST::ArrayAccessNode(new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->arrSize), $3 ),$6);
+            }
+            else 
+            {
+                $$ = new AST::DefineVariableNode(new AST::ArrayAccessNode(new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->arrSize), $3 ),$6);
+            variableSymbol->defined = true;
+            }
+        }
+        else
+        {
+            yyerror("semantico: arranjo %s sem declaracao", $1);
+            $$ = new AST::DefineVariableNode(new AST::ArrayAccessNode(new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3 ),$6);
+        }
     }
 }
 ;
@@ -539,14 +798,15 @@ T_VARNAME
     decltype(scope->searchScope(std::string($1))) variableSymbol;
     if(!(variableSymbol = scope->searchScope(std::string($1)))) {
         yyerror("semantico: variavel %s sem declaracao", $1);
+        $$ = new AST::VariableNode(std::string($1), AST::TERROR);
     }
     else if(!variableSymbol->defined){
         yyerror("semantico: variavel %s nao inicializada", $1);
+        $$ = new AST::VariableNode(std::string($1), AST::TERROR);
     }
     else if(variableSymbol->isArray) {
-        //REMOVER??
-        std::cerr << "Atribuindo valor arrayzal para alguma expressão. Não pode" << std::endl;
-        std::exit(-1);
+        yyerror("semantico: arranjo %s com uso como variavel.", $1);
+        $$ = new AST::VariableNode(std::string($1), AST::TERROR);
     }
     else {
         $$ = new AST::VariableNode(std::string($1), variableSymbol->type);
@@ -562,16 +822,12 @@ T_VARNAME T_LBR expr T_RBR
 {
     auto variableSymbol = scope->searchScope(std::string($1));
     if(!variableSymbol) {
-        std::cerr << "Variavel não declarada." << std::endl;
-        std::exit(-1);
-    }
-    else if (!variableSymbol->defined) {
-        std::cerr << "Variavel não definida." << std::endl;
-        std::exit(-1); 
+        yyerror("semantico: arranjo %s sem declaracao", $1);
+        $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3);
     }
     else if (!variableSymbol->isArray) {
-        std::cerr << "Tentando acessar o indice de array numa variavel que não é array." << std::endl;
-        std::exit(-1);
+        yyerror("semantico: variavel %s com uso como arranjo", $1);
+        $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3);
     }
     else {
         $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->arrSize), $3);
@@ -593,16 +849,16 @@ T_MINUS T_VARNAME %prec UNARY_MINUS
     //Add support to unary minus operation on variables.
       decltype(scope->searchScope(std::string($2))) variableSymbol;
     if(!(variableSymbol = scope->searchScope(std::string($2)))) {
-        std::cerr << "Variavel não declarada usada em expressão " << std::string($2) <<std::endl;
-        std::exit(-1);
+        yyerror("semantico: variavel %s sem declaracao", $2);
+        $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
     }
     else if(!variableSymbol->defined){
-        std::cerr << "Variavel não definida usada em expressão " << std::string($2) << std::endl;
-        std::exit(-1);
+        yyerror("semantico: variavel %s nao inicializada", $2);
+        $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
     }
     else if(variableSymbol->isArray) {
-        std::cerr << "Atribuindo valor arrayzal para alguma expressão. Não pode" << std::endl;
-        std::exit(-1);
+        yyerror("semantico: arranjo %s com uso como variavel.", $2);
+        $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
     }
     else {
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), variableSymbol->type));
@@ -613,16 +869,12 @@ T_MINUS T_VARNAME T_LBR expr T_RBR
 {
   decltype(scope->searchScope(std::string($2))) variableSymbol;
     if(!(variableSymbol = scope->searchScope(std::string($2)))) {
-        std::cerr << "Variavel não declarada usada em expressão " << std::string($2) <<std::endl;
-        std::exit(-1);
-    }
-    else if(!variableSymbol->defined){
-        std::cerr << "Variavel não definida usada em expressão " << std::string($2) << std::endl;
-        std::exit(-1);
+        yyerror("semantico: arranjo %s sem declaracao", $2);
+        $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), AST::TERROR, variableSymbol->arrSize), $4));
     }
     else if(!variableSymbol->isArray) {
-        std::cerr << "Tentando acessar índice de não array" << std::endl;
-        std::exit(-1);
+        yyerror("semantico: variavel %s com uso como arranjo.", $2);
+        $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), AST::TERROR, variableSymbol->arrSize), $4));
     }
     else {
         $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), variableSymbol->type, variableSymbol->arrSize), $4));
@@ -665,15 +917,36 @@ tipo T_DECLVAR varlist T_SMC
     for(auto& name : *($3))
     {
         if(scope->searchCurrentScope(name)){
-            yyerror("semantico: variavel %s sofrendo redefinicao.", name.c_str());
+            if(!scope->searchCurrentScope(name)->isArray) {
+                yyerror("semantico: variavel %s sofrendo redefinicao.", name.c_str());
+            }
+            else {
+                yyerror("semantico: arranjo %s sofrendo redefinicao.", name.c_str());
+            }
         }
         else {
             varVec->push_back(new AST::VariableNode(name, type));
-            scope->addToScope(name, type, $1.isArray, $1.size);
+            if(!$1.isArray) {
+                scope->addToScope(name, type, $1.isArray, $1.size);
+            }
+            else {
+                if($1.size < 1) {
+                    yyerror("semantico: arranjo %s com tamanho menor do que um.", name.c_str());
+                    scope->addToScope(name, type, $1.isArray, 1);
+                }
+                else {
+                    scope->addToScope(name, type, $1.isArray, $1.size);
+                }
+            }
         }
     }
     if($1.isArray) {
-        $$ = new AST::DeclareVariableNode(varVec, $1.size);
+        if($1.size < 1) {
+            $$ = new AST::DeclareVariableNode(varVec, 1);
+        }
+        else {
+            $$ = new AST::DeclareVariableNode(varVec, $1.size);
+        }
     }
     else {
         $$ = new AST::DeclareVariableNode(varVec);
@@ -733,6 +1006,7 @@ T_VARNAME
 createscope:
 {
     scope->generateScope();
+    ++scopeCount;
     $$ = NULL;    
 }
 ;
@@ -741,6 +1015,7 @@ destroyscope:
 {
     $$ = NULL;
     scope->deleteScope();
+    --scopeCount;
 }
 ;
 

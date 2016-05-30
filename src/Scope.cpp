@@ -88,13 +88,13 @@ FunctionScope::FunctionScope() :
 		functionValMap(std::map<std::string, functionInfo>()) {
 }
 
-void FunctionScope::addToScope(const std::string& name, const AST::Type& varType,
-		std::vector<AST::VariableNode*> args) {
+void FunctionScope::addToScope(const std::string& name,
+		const AST::Type& varType, std::vector<AST::VariableNode*> args) {
 	functionInfo entry;
 	entry.defined = false;
 	entry.type = varType;
 	entry.argInfo = std::vector<variableInfo>();
-	for(auto& var: args) {
+	for (auto& var : args) {
 		variableInfo varInfo;
 		varInfo.isArray = var->isArray();
 		varInfo.type = var->getType();
@@ -104,9 +104,10 @@ void FunctionScope::addToScope(const std::string& name, const AST::Type& varType
 	functionValMap[name] = entry;
 }
 
-bool ScopeNode::searchCurrentScope(const std::string& varName, variableInfo** outputInfo) {
+bool ScopeNode::searchCurrentScope(const std::string& varName,
+		variableInfo** outputInfo) {
 	auto position = variableValMap.find(varName);
-	if(position == variableValMap.end()) {
+	if (position == variableValMap.end()) {
 		return false;
 	}
 	*outputInfo = &position->second;
@@ -121,7 +122,7 @@ variableInfo* Scope::searchCurrentScope(const string& varName) {
 
 functionInfo* FunctionScope::searchScope(const std::string& funcName) {
 	auto position = functionValMap.find(funcName);
-	if(position == functionValMap.end()) {
+	if (position == functionValMap.end()) {
 		return nullptr;
 	}
 	return &position->second;
@@ -130,4 +131,12 @@ functionInfo* FunctionScope::searchScope(const std::string& funcName) {
 void Scope::addToScope(const std::string& name, const AST::Type& varType,
 		const bool& isArray, const unsigned int& arrSize) {
 	tail->addToScope(name, varType, isArray, arrSize);
+}
+
+std::map<std::string, functionInfo>::iterator FunctionScope::begin() {
+	return this->functionValMap.begin();
+}
+
+std::map<std::string, functionInfo>::iterator FunctionScope::end() {
+	return this->functionValMap.end();
 }

@@ -71,8 +71,12 @@ public:
 	void addToScope(const std::string& name, const AST::Type& varType, std::vector<AST::VariableNode*> args);
 	~FunctionScope();
 	functionInfo* searchScope(const std::string& funcName);
+
 private:
 	std::map<std::string, functionInfo> functionValMap;
+public:
+	std::map<std::string, functionInfo>::iterator begin();
+	std::map<std::string, functionInfo>::iterator end();
 };
 
 }

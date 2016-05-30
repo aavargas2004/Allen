@@ -10,6 +10,7 @@
 #include <iostream>
 #include "Types/Types.h"
 #include "Exceptions.h"
+extern void yyerror(const char* s, ...);
 using std::cout;
 using namespace AST;
 
@@ -23,11 +24,12 @@ BinaryBooleanExpressionNode::BinaryBooleanExpressionNode(ExpressionNode* lhs,
 		BooleanExpressionNode(), lhs(lhs), rhs(rhs) {
 	auto typeptrleft = ExprType::makeType(lhs->getType());
 	auto typeptrright = ExprType::makeType(rhs->getType());
-	if (!typeptrleft->compatible(typeptrright.get())) {
-		throw IncompatibleTypeException(lhs->getType(), rhs->getType());
+	try {
+		auto newType = typeptrleft->getNewType(typeptrright.get());
+		comparisonType = newType->getTypeCode();
+	} catch (IncompatibleTypeException& e) {
+		comparisonType = TERROR;
 	}
-	auto newType = typeptrleft->getNewType(typeptrright.get());
-	comparisonType = newType->getTypeCode();
 }
 
 UnaryBooleanExpressionNode::UnaryBooleanExpressionNode(ExpressionNode* node) :
@@ -37,12 +39,13 @@ UnaryBooleanExpressionNode::UnaryBooleanExpressionNode(ExpressionNode* node) :
 
 AndBinaryNode::AndBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryBooleanExpressionNode(lhs, rhs) {
-	if ((lhs->getType() != Type::TBOOL) || (rhs->getType() != Type::TBOOL)) {
-		if (lhs->getType() != Type::TBOOL) {
-			throw InvalidType(lhs->getType());
-		} else {
-			throw InvalidType(rhs->getType());
-		}
+	auto typeVal = ExprType::makeType(comparisonType);
+	if (comparisonType != TREAL) {
+
+		yyerror(
+				"semantico: operacao e booleano espera booleano mas recebeu %s.",
+				typeVal->getTypeNameMasculino().c_str());
+		initialize(TERROR);
 	}
 }
 void AndBinaryNode::printOperation() const {
@@ -51,12 +54,13 @@ void AndBinaryNode::printOperation() const {
 
 OrBinaryNode::OrBinaryNode(ExpressionNode* lhs, ExpressionNode* rhs) :
 		BinaryBooleanExpressionNode(lhs, rhs) {
-	if ((lhs->getType() != Type::TBOOL) || (rhs->getType() != Type::TBOOL)) {
-		if (lhs->getType() != Type::TBOOL) {
-			throw InvalidType(lhs->getType());
-		} else {
-			throw InvalidType(rhs->getType());
-		}
+	auto typeVal = ExprType::makeType(comparisonType);
+	if (comparisonType != TREAL) {
+
+		yyerror(
+				"semantico: operacao ou booleano espera booleano mas recebeu %s.",
+				typeVal->getTypeNameMasculino().c_str());
+		initialize(TERROR);
 	}
 }
 
@@ -121,8 +125,14 @@ void DifferentBinaryNode::printOperation() const {
 
 NotUnaryNode::NotUnaryNode(ExpressionNode* node) :
 		UnaryBooleanExpressionNode(node) {
-	if (node->getType() != Type::TBOOL) {
-		throw InvalidType(node->getType());
+	Type comparisonType = node->getType();
+	auto typeVal = ExprType::makeType(comparisonType);
+	if (comparisonType != TREAL) {
+
+		yyerror(
+				"semantico: operacao nao booleano espera booleano mas recebeu %s.",
+				typeVal->getTypeNameMasculino().c_str());
+		initialize(TERROR);
 	}
 }
 
