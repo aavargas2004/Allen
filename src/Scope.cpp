@@ -19,6 +19,7 @@ variableInfo::_variableInfo() {
 	this->type = Type::TERROR;
 	this->isArray = false;
 	this->arrSize = 0;
+	this->globalScope = false;
 
 }
 
@@ -99,6 +100,7 @@ void FunctionScope::addToScope(const std::string& name,
 		varInfo.isArray = var->isArray();
 		varInfo.type = var->getType();
 		varInfo.arrSize = var->arrSize();
+		varInfo.globalScope = false;
 		entry.argInfo.push_back(varInfo);
 	}
 	functionValMap[name] = entry;

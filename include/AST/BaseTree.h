@@ -38,10 +38,10 @@ public:
 	ExpressionNode(Type type);
 	ExpressionNode();
 	Type getType() const;
+	void initialize(const Type type);
 	virtual std::string getName() const;
 protected:
 	virtual void printExpression() const;
-	void initialize(const Type type);
 	Type type;
 };
 

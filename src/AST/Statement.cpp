@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 #include "Exceptions.h"
+extern void yyerror(const char* s, ...);
 using namespace AST;
 using namespace std;
 DeclareVariableNode::DeclareVariableNode(vector<VariableNode*>* declaredVar) :
@@ -22,7 +23,7 @@ DeclareVariableNode::DeclareVariableNode(vector<VariableNode*>* declaredVar,
 
 }
 void DeclareVariableNode::printNode() const {
-	if(vec->empty()) {
+	if (vec->empty()) {
 		return;
 	}
 	VariableNode* firstVar = (*vec)[0];
@@ -46,14 +47,22 @@ IfNode::IfNode(ExpressionNode* condition, BlockNode* thenNode,
 		BlockNode* elseNode) :
 		condition(condition), thenNode(thenNode), elseNode(elseNode) {
 	if (condition->getType() != TBOOL) {
-		throw InvalidType(condition->getType());
+		string error("semantico: operacao teste espera booleano mas recebeu ");
+		auto typePtr = ExprType::makeType(condition->getType());
+		error += typePtr->getTypeNameMasculino();
+		condition->initialize(TERROR);
+		yyerror(error.c_str());
 	}
 }
 
 IfNode::IfNode(ExpressionNode* condition, BlockNode* then) :
 		condition(condition), thenNode(then), elseNode(nullptr) {
 	if (condition->getType() != TBOOL) {
-		throw InvalidType(condition->getType());
+		string error("semantico: operacao teste espera booleano mas recebeu ");
+		auto typePtr = ExprType::makeType(condition->getType());
+		error += typePtr->getTypeNameMasculino();
+		condition->initialize(TERROR);
+		yyerror(error.c_str());
 	}
 }
 
@@ -88,7 +97,11 @@ void DefineVariableNode::printNode() const {
 WhileNode::WhileNode(ExpressionNode* condition, BlockNode* statements) :
 		condition(condition), statements(statements) {
 	if (condition->getType() != TBOOL) {
-		throw InvalidType(condition->getType());
+		string error("semantico: operacao teste espera booleano mas recebeu ");
+		auto typePtr = ExprType::makeType(condition->getType());
+		error += typePtr->getTypeNameMasculino();
+		condition->initialize(TERROR);
+		yyerror(error.c_str());
 	}
 }
 
@@ -117,11 +130,13 @@ void ReturnNode::printNode() const {
 }
 
 DeclareFunctionNode::DeclareFunctionNode(std::string name, Type type,
-		std::vector<VariableNode*>* args): functionName(name), args(args) {
+		std::vector<VariableNode*>* args) :
+		functionName(name), args(args) {
 	initialize(type);
 }
 
-DeclareFunctionNode::DeclareFunctionNode(std::string name, Type type): functionName(name), args(nullptr) {
+DeclareFunctionNode::DeclareFunctionNode(std::string name, Type type) :
+		functionName(name), args(nullptr) {
 	initialize(type);
 }
 
@@ -130,10 +145,11 @@ void DeclareFunctionNode::printNode() const {
 	cout << "Declaracao de funcao " << typeptr->getTypeName() << ": ";
 	cout << functionName << endl;
 	cout << "+parametros:" << endl;
-	if(args) {
-		for(auto& val: *(args)) {
+	if (args) {
+		for (auto& val : *(args)) {
 			auto argTypePtr = ExprType::makeType(val->getType());
-			cout << "Parametro " << argTypePtr->getTypeNameMasculino() << ": " << val->getName();
+			cout << "Parametro " << argTypePtr->getTypeNameMasculino() << ": "
+					<< val->getName();
 			cout << endl;
 		}
 	}
@@ -142,7 +158,7 @@ void DeclareFunctionNode::printNode() const {
 
 void IfNode::findReturnStatement(std::vector<ReturnNode*>& vec) {
 	this->thenNode->findReturnStatement(vec);
-	if(elseNode)
+	if (elseNode)
 		this->elseNode->findReturnStatement(vec);
 }
 

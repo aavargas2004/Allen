@@ -20,6 +20,7 @@ typedef struct _variableInfo {
 	AST::Type type;
 	bool isArray;
 	unsigned int arrSize;
+	bool globalScope;
 	_variableInfo();
 } variableInfo;
 

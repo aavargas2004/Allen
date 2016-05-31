@@ -157,12 +157,6 @@ T_VARNAME T_LPR callarglist T_RPR
     $$ = nullptr;
     auto funcInfo = funcScope->searchScope(std::string($1));
     if(funcInfo) {
-        if(!funcInfo->defined) {
-            yyerror("semantico: funcao nao inicializada.");
-            if($$ == nullptr) {
-                $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3);      
-            }
-        }
         if($3->size() != funcInfo->argInfo.size()) {
             yyerror("semantico: funcao %s espera %i parametros mas recebeu %d.", $1, funcInfo->argInfo.size(), $3->size());
             $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3); 
@@ -173,7 +167,7 @@ T_VARNAME T_LPR callarglist T_RPR
             for(auto beg = $3->begin(); beg != end; ++beg, ++ indexBeg) {
                 auto requiredTypePtr = AST::ExprType::makeType((*indexBeg).type);
                 auto actualTypePtr = AST::ExprType::makeType((*beg)->getType());
-                if(!requiredTypePtr->compatible(actualTypePtr.get())) {
+                if(!((*indexBeg).type == (*beg)->getType())) {
                     yyerror("semantico: parametro espera %s mas recebeu %s.", requiredTypePtr->getTypeNameMasculino().c_str(), actualTypePtr->getTypeNameMasculino().c_str());
                     if($$ == nullptr)
                         $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, $3);
@@ -232,12 +226,6 @@ T_VARNAME T_LPR T_RPR
     $$ = nullptr;
     auto funcInfo = funcScope->searchScope(std::string($1));
     if(funcInfo) {
-        if(!funcInfo->defined) {
-            yyerror("semantico: funcao nao inicializada.");
-            if($$ == nullptr) {
-                $$ = new AST::FunctionCallNode(std::string($1),AST::TERROR, new std::vector<AST::ExpressionNode*>());      
-            }
-        }
         if(funcInfo->argInfo.size()) {
             yyerror("semantico: funcao %s espera %i parametros mas recebeu %d.", $1, funcInfo->argInfo.size(), 0);
             
@@ -344,13 +332,27 @@ T_NOT arglistexpr
 T_VARNAME
 {
     decltype(scope->searchScope(std::string($1))) variableSymbol;
-    if(!(variableSymbol = scope->searchScope(std::string($1)))) {
+    if(funcScope->searchScope(std::string($1))) {
+        yyerror("semantico: funcao %s com uso como variavel", $1);
+        $$ = new AST::VariableNode(std::string($1), AST::TERROR);
+    }
+    else if(!(variableSymbol = scope->searchScope(std::string($1)))) {
         yyerror("semantico: variavel %s sem declaracao", $1);
         $$ = new AST::VariableNode(std::string($1), AST::TERROR);
     }
     else if(!variableSymbol->defined && !variableSymbol->isArray){
-        yyerror("semantico: variavel %s nao inicializada", $1);
-        $$ = new AST::VariableNode(std::string($1), AST::TERROR);
+        if(!(insideFunc && variableSymbol->globalScope)) {
+            yyerror("semantico: variavel %s nao inicializada", $1);
+            $$ = new AST::VariableNode(std::string($1), AST::TERROR);
+        }
+        else {
+            if(!variableSymbol->isArray) {
+                $$ = new AST::VariableNode(std::string($1), variableSymbol->type);
+            }
+            else {
+                $$ = new AST::ArrayNode(std::string($1), variableSymbol->type, variableSymbol->arrSize);
+            }
+        }
     }
     else {
         if(!variableSymbol->isArray) {
@@ -370,7 +372,11 @@ functioncall
 T_VARNAME T_LBR expr T_RBR
 {
     auto variableSymbol = scope->searchScope(std::string($1));
-    if(!variableSymbol) {
+    if(funcScope->searchScope(std::string($1))) {
+        yyerror("semantico: funcao %s com uso como arranjo", $1);
+        $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3);
+    }
+    else if(!variableSymbol) {
         yyerror("semantico: arranjo %s sem declaracao", $1);
         $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3);
     }
@@ -396,18 +402,27 @@ T_MINUS T_INT %prec UNARY_MINUS
 T_MINUS T_VARNAME %prec UNARY_MINUS
 {
     //Add support to unary minus operation on variables.
-      decltype(scope->searchScope(std::string($2))) variableSymbol;
-    if(!(variableSymbol = scope->searchScope(std::string($2)))) {
-        yyerror("semantico: variavel %s sem declaracao", $2);
+    decltype(scope->searchScope(std::string($2))) variableSymbol;
+    if(funcScope->searchScope(std::string($2))) {
+        yyerror("semantico: funcao %s com uso como variavel", $2);
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
     }
-    else if(!variableSymbol->defined){
-        yyerror("semantico: variavel %s nao inicializada", $2);
+    else if(!(variableSymbol = scope->searchScope(std::string($2)))) {
+        yyerror("semantico: variavel %s sem declaracao", $2);
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
     }
     else if(variableSymbol->isArray) {
         yyerror("semantico: arranjo %s com uso como variavel.", $2);
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
+    }
+    else if(!variableSymbol->defined){
+        if(!(insideFunc && variableSymbol->globalScope)) {
+            yyerror("semantico: variavel %s nao inicializada", $2);
+            $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
+        }
+        else {
+            $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), variableSymbol->type));
+        }    
     }
     else {
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), variableSymbol->type));
@@ -416,8 +431,12 @@ T_MINUS T_VARNAME %prec UNARY_MINUS
 |
 T_MINUS T_VARNAME T_LBR expr T_RBR
 {
-  decltype(scope->searchScope(std::string($2))) variableSymbol;
-    if(!(variableSymbol = scope->searchScope(std::string($2)))) {
+    decltype(scope->searchScope(std::string($2))) variableSymbol;
+    if(funcScope->searchScope(std::string($2))) {
+        yyerror("semantico: funcao %s com uso como arranjo", $2);
+        $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), AST::TERROR, variableSymbol->arrSize), $4));
+    }
+    else if(!(variableSymbol = scope->searchScope(std::string($2)))) {
         yyerror("semantico: arranjo %s sem declaracao", $2);
         $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), AST::TERROR, variableSymbol->arrSize), $4));
     }
@@ -487,32 +506,58 @@ T_DECL T_FUN tipo_base T_DECLVAR T_VARNAME createscope T_LPR T_RPR destroyscope 
 funct:
 T_DEF T_FUN tipo_base T_DECLVAR T_VARNAME enterfunc createscope T_LPR arglist T_RPR funcbody destroyscope leavefunc T_END T_DEF
 {
+    $$ = nullptr;
     if(!scopeCount) {
+        bool define = true;
         decltype(funcScope->searchScope(std::string($5))) funcSymbol;    
         if(!(funcSymbol = funcScope->searchScope(std::string($5)))) {
             funcScope->addToScope(std::string($5), $3, *($9));
             funcSymbol = funcScope->searchScope(std::string($5));
         }
         else {
+            
             if(funcSymbol->defined) {
                 yyerror("semantico: funcao %s sofrendo redefinicao.", $5);
-                $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);
+                if(!$$)
+                    $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);
+            }
+
+            auto indexBeg = funcSymbol->argInfo.begin();
+            auto beg = $9->begin();
+            if(funcSymbol->argInfo.size() != $9->size()) {
+                yyerror("semantico: funcao %s sofrendo redeclaracao.", $5);
+                define = false;
+                if(!$$)
+                    $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);            
+            }
+            else {
+                for(; beg != $9->end(); ++beg, ++indexBeg) {
+                    if((*beg)->getType() != indexBeg->type) {
+                        yyerror("semantico: funcao %s sofrendo redeclaracao.", $5);
+                        define = false;
+                        if(!$$)
+                            $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);
+                    }
+                }
             }
         }
-        funcSymbol->defined = true;
+        if(define)
+            funcSymbol->defined = true;
         auto typeptr = AST::ExprType::makeType($3);
         std::vector<AST::ReturnNode*> returnVec;
         $11->findReturnStatement(returnVec);
         if(returnVec.empty()) {
-            std::cerr << "Erro. Funcao nao tem retorno" << std::endl;
-            std::exit(-1);
+            yyerror("semantico: funcao nao possui retorno.");
+            if(!$$)
+                    $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);
         }
     
         for(auto& retExpression : returnVec) {
             auto retExpressionType = AST::ExprType::makeType(retExpression->getType());
             if(!typeptr->compatible(retExpressionType.get())) {
-                std::cerr << "Erro. Retorno de funcao nao bate com tipo." << std::endl;
-                std::exit(-1);
+                yyerror("semantico: retorno de funcao nao bate com o tipo.");
+                if(!$$)
+                    $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);
             }
         }
         if(!$$)
@@ -520,14 +565,17 @@ T_DEF T_FUN tipo_base T_DECLVAR T_VARNAME enterfunc createscope T_LPR arglist T_
     }
     else {
         yyerror("semantico: funcao definida fora do escopo global.");
-        $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);
+        if(!$$)
+            $$ = new AST::FunctionNode(AST::TERROR, std::string($5), $9, $11);
     }
 }
 |
 T_DEF T_FUN tipo_base T_DECLVAR T_VARNAME enterfunc createscope T_LPR T_RPR funcbody destroyscope leavefunc T_END T_DEF
 {
+    $$ = nullptr;
     if(!scopeCount) {
-        decltype(funcScope->searchScope(std::string($5))) funcSymbol;    
+        decltype(funcScope->searchScope(std::string($5))) funcSymbol;
+        bool define = true;    
         if(!(funcSymbol = funcScope->searchScope(std::string($5)))) {
             funcScope->addToScope(std::string($5), $3,  std::vector<AST::VariableNode*>());
             funcSymbol = funcScope->searchScope(std::string($5));
@@ -535,31 +583,42 @@ T_DEF T_FUN tipo_base T_DECLVAR T_VARNAME enterfunc createscope T_LPR T_RPR func
         else {
             if(funcSymbol->defined) {
                 yyerror("semantico: funcao %s sofrendo redefinicao.", $5);
-                $$ = new AST::FunctionNode(AST::TERROR, std::string($5), new std::vector<AST::VariableNode*>(), $10);
+                if(!$$)
+                    $$ = new AST::FunctionNode(AST::TERROR, std::string($5), new std::vector<AST::VariableNode*>(), $10);
             }
-            
+            if(funcSymbol->argInfo.size() != 0) {
+                yyerror("semantico: funcao %s sofrendo redeclaracao.", $5);
+                define = false;
+                if(!$$)
+                    $$ = new AST::FunctionNode(AST::TERROR, std::string($5), new std::vector<AST::VariableNode*>(), $10);
+            } 
         }
-        funcSymbol->defined = true;
+        if(define)
+            funcSymbol->defined = true;
         auto typeptr = AST::ExprType::makeType($3);
         std::vector<AST::ReturnNode*> returnVec;
         $10->findReturnStatement(returnVec);
         if(returnVec.empty()) {
-            std::cerr << "Erro. Funcao nao tem retorno" << std::endl;
-            std::exit(-1);
+            yyerror("semantico: funcao nao possui retorno.");
+            if(!$$)
+                    $$ = new AST::FunctionNode(AST::TERROR, std::string($5), new std::vector<AST::VariableNode*>(), $10);
         }
         for(auto& retExpression : returnVec) {
             auto retExpressionType = AST::ExprType::makeType(retExpression->getType());
             if(!typeptr->compatible(retExpressionType.get())) {
-                std::cerr << "Erro. Retorno de funcao nao bate com tipo." << std::endl;
-                std::exit(-1);       
+                yyerror("semantico: retorno de funcao nao bate com o tipo.");
+                if(!$$)
+                    $$ = new AST::FunctionNode(AST::TERROR, std::string($5), new std::vector<AST::VariableNode*>(), $10);
             }
         }
-        if(!$$)
+        if(!$$) {
             $$ = new AST::FunctionNode($3, std::string($5), new std::vector<AST::VariableNode*>(), $10);
+        }
     }
     else {
         yyerror("semantico: funcao definida fora do escopo global.");
-        $$ = new AST::FunctionNode(AST::TERROR, std::string($5), new std::vector<AST::VariableNode*>(), $10);
+        if(!$$)
+            $$ = new AST::FunctionNode(AST::TERROR, std::string($5), new std::vector<AST::VariableNode*>(), $10);
     }
 }
 ;
@@ -568,8 +627,7 @@ returnstat:
 T_RETURN expr T_SMC
 {
     if(!insideFunc) {
-        std::cerr << "Calling return outside function";
-        std::exit(-1);
+        yyerror("semantico: return sendo chamado fora de funcao");
     }
     $$ = new AST::ReturnNode($2);
 }
@@ -796,17 +854,26 @@ T_NOT expr
 T_VARNAME
 {
     decltype(scope->searchScope(std::string($1))) variableSymbol;
-    if(!(variableSymbol = scope->searchScope(std::string($1)))) {
-        yyerror("semantico: variavel %s sem declaracao", $1);
+    if(funcScope->searchScope(std::string($1))) {
+        yyerror("semantico: funcao %s com uso como variavel", $1);
         $$ = new AST::VariableNode(std::string($1), AST::TERROR);
     }
-    else if(!variableSymbol->defined){
-        yyerror("semantico: variavel %s nao inicializada", $1);
+    else if(!(variableSymbol = scope->searchScope(std::string($1)))) {
+        yyerror("semantico: variavel %s sem declaracao", $1);
         $$ = new AST::VariableNode(std::string($1), AST::TERROR);
     }
     else if(variableSymbol->isArray) {
         yyerror("semantico: arranjo %s com uso como variavel.", $1);
         $$ = new AST::VariableNode(std::string($1), AST::TERROR);
+    }
+    else if(!variableSymbol->defined){
+        if(!(insideFunc && variableSymbol->globalScope)) {
+            yyerror("semantico: variavel %s nao inicializada", $1);
+            $$ = new AST::VariableNode(std::string($1), AST::TERROR);
+        }
+        else {
+            $$ = new AST::VariableNode(std::string($1), variableSymbol->type);
+        }
     }
     else {
         $$ = new AST::VariableNode(std::string($1), variableSymbol->type);
@@ -821,7 +888,11 @@ functioncall
 T_VARNAME T_LBR expr T_RBR
 {
     auto variableSymbol = scope->searchScope(std::string($1));
-    if(!variableSymbol) {
+    if(funcScope->searchScope(std::string($1))) {
+        yyerror("semantico: funcao %s com uso como arranjo", $1);
+        $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3);
+    }
+    else if(!variableSymbol) {
         yyerror("semantico: arranjo %s sem declaracao", $1);
         $$ = new AST::ArrayAccessNode( new AST::ArrayNode(std::string($1), AST::TERROR, variableSymbol->arrSize), $3);
     }
@@ -847,18 +918,27 @@ T_MINUS T_INT %prec UNARY_MINUS
 T_MINUS T_VARNAME %prec UNARY_MINUS
 {
     //Add support to unary minus operation on variables.
-      decltype(scope->searchScope(std::string($2))) variableSymbol;
-    if(!(variableSymbol = scope->searchScope(std::string($2)))) {
-        yyerror("semantico: variavel %s sem declaracao", $2);
+    decltype(scope->searchScope(std::string($2))) variableSymbol;
+    if(funcScope->searchScope(std::string($2))) {
+        yyerror("semantico: funcao %s com uso como variavel", $2);
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
     }
-    else if(!variableSymbol->defined){
-        yyerror("semantico: variavel %s nao inicializada", $2);
+    else if(!(variableSymbol = scope->searchScope(std::string($2)))) {
+        yyerror("semantico: variavel %s sem declaracao", $2);
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
     }
     else if(variableSymbol->isArray) {
         yyerror("semantico: arranjo %s com uso como variavel.", $2);
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
+    }
+    else if(!variableSymbol->defined){
+        if(!(insideFunc && variableSymbol->globalScope)) {
+            yyerror("semantico: variavel %s nao inicializada", $2);
+            $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
+        }
+        else {
+            $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), variableSymbol->type));
+        }
     }
     else {
         $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), variableSymbol->type));
@@ -867,8 +947,12 @@ T_MINUS T_VARNAME %prec UNARY_MINUS
 |
 T_MINUS T_VARNAME T_LBR expr T_RBR
 {
-  decltype(scope->searchScope(std::string($2))) variableSymbol;
-    if(!(variableSymbol = scope->searchScope(std::string($2)))) {
+    decltype(scope->searchScope(std::string($2))) variableSymbol;
+    if(funcScope->searchScope(std::string($2))) {
+        yyerror("semantico: funcao %s com uso como arranjo", $2);
+        $$ = new AST::UnaryMinusNode( new AST::VariableNode(std::string($2), AST::TERROR));
+    }
+    else if(!(variableSymbol = scope->searchScope(std::string($2)))) {
         yyerror("semantico: arranjo %s sem declaracao", $2);
         $$ = new AST::UnaryMinusNode( new AST::ArrayAccessNode(new AST::ArrayNode(std::string($2), AST::TERROR, variableSymbol->arrSize), $4));
     }
@@ -924,6 +1008,9 @@ tipo T_DECLVAR varlist T_SMC
                 yyerror("semantico: arranjo %s sofrendo redefinicao.", name.c_str());
             }
         }
+        else if (funcScope->searchScope(std::string(name))) {
+            yyerror("semantico: funcao %s com uso como variavel", name.c_str());
+        }
         else {
             varVec->push_back(new AST::VariableNode(name, type));
             if(!$1.isArray) {
@@ -937,6 +1024,10 @@ tipo T_DECLVAR varlist T_SMC
                 else {
                     scope->addToScope(name, type, $1.isArray, $1.size);
                 }
+            }
+            if(!scopeCount) {
+                auto tableVal = scope->searchScope(name);
+                tableVal->globalScope = true;
             }
         }
     }
